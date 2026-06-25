@@ -1,0 +1,15 @@
+id: unguarded-utf8-encode
+message: |
+  Use .encode('utf-8', errors='replace') instead of .encode('utf-8') to prevent
+  UnicodeEncodeError on surrogate characters. The :replace error handler converts
+  un-encodable characters to ? instead of crashing the process.
+severity: warning
+language: python
+rule:
+  pattern: $X.encode('utf-8')
+note: |
+  F-11 lint rule — prevents future whack-a-mole on UnicodeEncodeError.
+  Instead of patching individual call sites, this rule catches ALL unguarded
+  .encode('utf-8') calls across the codebase.
+  
+  Run: ast-grep scan --rule python/lint/encode_safety.yml python/

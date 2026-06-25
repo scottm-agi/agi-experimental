@@ -1,0 +1,138 @@
+services:
+  agix-dev:
+    container_name: agix-dev
+    # Use local build (fresh environment)
+    # image: agi-experimental/agi-experimental:latest
+    # To build locally instead, uncomment below and comment out image:
+    build:
+      context: .
+      dockerfile: DockerfileLocal
+      args:
+        BRANCH: local
+        CACHE_DATE: ${CACHE_DATE:-none}
+    
+    volumes:
+      # Mount local repo to /agix for live code updates
+      - .:/agix
+      # Mount startup scripts for live updates
+      - ./docker/run/fs/exe:/exe
+      - ./docker/run/fs/ins:/ins
+      # Mount SearXNG configuration
+      - ./docker/run/fs/etc/searxng:/etc/searxng
+      # Mount supervisor config to override baked-in upstream config (which references run_A0.sh)
+      - ./docker/run/fs/etc/supervisor/conf.d/supervisord.conf:/etc/supervisor/conf.d/supervisord.conf
+      # Persist state across restarts
+      - ./tmp:/agix/tmp
+      - ./usr:/agix/usr
+      - ./data:/agix/data
+      - ./memory:/agix/memory
+      - ./knowledge:/agix/knowledge
+      # Seed data from host for automatic synchronization
+      - ./memory:/seed/memory:ro
+      - ./usr/projects:/seed/projects:ro
+    
+    ports:
+      # SSH for RFC communication
+      - "8822:22"
+      # Web UI: HTTP Redirect (8880) and HTTPS (8443)
+      - "8880:80"
+      - "8443:443"
+      # Backend services (Flask, Python HTTP servers)
+      - "5100-5199:5100-5199"
+      # Database proxies (shifted host range to avoid conflicts with local Postgres on 5432)
+      - "15400-15499:5400-5499"
+      # Additional ports for development servers
+      - "9000-9009:9000-9009"
+    
+    environment:
+      # Development mode
+      - AGIX_DEV_MODE=true
+      # Enable LLM Supervisor for agent monitoring
+      - SUPERVISOR_ENABLED=true
+      - LLM_SUPERVISOR_ENABLED=true
+      - GIT_CEILING_DIRECTORIES=/agix
+      # RFC password (set this to your desired password)
+      - RFC_PASSWORD=${RFC_PASSWORD:-dev-password}
+      # Disable login by default in development mode
+      - AUTH_LOGIN=
+      - AUTH_PASSWORD=
+      # Allow local curl / browser origin for CSRF token + message_async
+      - ALLOWED_ORIGINS=http://localhost:3000,http://localhost:8880,http://127.0.0.1:8880,https://localhost:8443,https://127.0.0.1:8443,http://localhost:80,http://127.0.0.1:80,https://localhost:443,https://127.0.0.1:443,https://localhost
+      - FLASK_SECRET_KEY=dev-secret-key-fixed
+      - CLIENT_IP_ENCRYPTION_KEY=dev-ip-encryption-key-fixed
+      - UI_DEBUG=false
+      - REDIS_HOST=redis
+      - PLAYWRIGHT_BROWSERS_PATH=/agix/data/playwright
+      # Disable Ollama as fallback to prevent 180s timeout delays with slow local models
+      - DISABLE_OLLAMA_FALLBACK=true
+      # Thread exhaustion fix (Forgejo #762): cap asgiref thread pool
+      - ASGI_THREADS=10
+      - THREAD_WARN_THRESHOLD=500
+      - RAILWAY_MAX_PERF=true
+      # Production security testing (set AGIX_ENV=production to enable guardrails)
+      - AGIX_ENV=${AGIX_ENV:-dev}
+      - AGIX_DISABLE_FILE_ACCESS=${AGIX_DISABLE_FILE_ACCESS:-false}
+      - AGIX_HIDE_SUB_AGENT_TILES=${AGIX_HIDE_SUB_AGENT_TILES:-false}
+      # Prevent UnicodeEncodeError crashes (F-9)
+      - PYTHONIOENCODING=utf-8:surrogateescape
+    
+    env_file:
+      - .env
+    
+    # Health check to ensure standard and webhook ports are up
+    healthcheck:
+      test: ["CMD-SHELL", "curl -f http://localhost:80/webhook/health || exit 1"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+
+    # Keep container running
+    restart: unless-stopped
+    
+    # Resource limits for development
+    # NOTE: 4G was too low — Next.js 16 Turbopack (836MB) + agent LLM threads + 
+    # Browser automation can exceed 4GB on complex smoke tests, causing OOM SIGKILL.
+    deploy:
+      resources:
+        limits:
+          memory: 12G
+        reservations:
+          memory: 2G
+    depends_on:
+      - redis
+      - postgres
+    networks:
+      - agix-dev-net
+
+  postgres:
+    image: postgres:17-alpine
+    container_name: agix-postgres
+    ports:
+      - "5432:5432"
+    environment:
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=postgres
+      - POSTGRES_DB=agix
+    volumes:
+      - ./data/postgres:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    restart: unless-stopped
+    networks:
+      - agix-dev-net
+
+  redis:
+    image: redis:alpine
+    container_name: agix-redis
+    restart: unless-stopped
+    networks:
+      - agix-dev-net
+
+networks:
+  agix-dev-net:
+    name: agix-dev-net
+    driver: bridge

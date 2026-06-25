@@ -1,0 +1,113 @@
+{
+  "$schema": "https://agix.com/schemas/quality_manifesto.v1.json",
+  "version": "1.0.0",
+  "description": "Machine-readable quality rules governing agent code generation. Single source of truth consumed by prompts (Layer 2) and gates (Layer 3).",
+  "rules": [
+    {
+      "id": "GAP-1",
+      "name": "framework_anti_pattern",
+      "gate_id": "1.157",
+      "category": "structural",
+      "severity": "critical",
+      "constraint": "Files MUST NOT co-locate 'use client' directive and 'export const dynamic' in the same file. Server-side exports require separate server component files.",
+      "anti_patterns": [
+        "'use client' + export const dynamic = 'force-dynamic'",
+        "'use client' + export const dynamic = 'force-static'"
+      ],
+      "detection_hint": "regex scan .tsx/.ts for co-occurrence",
+      "prompt_guidance": "When fixing prerendering errors, create a separate server wrapper component instead of adding `export const dynamic` to client component files.",
+      "fix_pattern": "Split into ClientComponent.tsx (with 'use client') and page.tsx (server, with dynamic export)"
+    },
+    {
+      "id": "GAP-2",
+      "name": "integration_sdk_decomposition",
+      "gate_id": "post_architect_save",
+      "category": "planning",
+      "severity": "critical",
+      "constraint": "Every integration requirement MUST have a companion SDK setup sub-requirement specifying the npm package and initialization pattern.",
+      "anti_patterns": [
+        "Single 'Stripe integration' requirement without SDK companion",
+        "Integration requirement that mentions behavior but not package installation"
+      ],
+      "detection_hint": "cross-reference requirements with WELL_KNOWN_PACKAGES mapping from manifest_packages.py",
+      "prompt_guidance": "For every integration (Stripe, Supabase, Calendly, etc.), create TWO requirements: (1) behavioral feature, (2) SDK setup with package name and init pattern.",
+      "fix_pattern": "REQ-N: Stripe payment flow + REQ-N+1: Install stripe package, init Stripe(process.env.STRIPE_SECRET_KEY)"
+    },
+    {
+      "id": "GAP-3",
+      "name": "navigation_mandate_timing",
+      "gate_id": "delegation_brief_mandates",
+      "category": "delegation",
+      "severity": "critical",
+      "constraint": "Navigation mandate MUST fire based on requirements ledger page count (always available early), not just route_map (only available after architect_plan.json). Threshold: >1 page.",
+      "anti_patterns": [
+        "Checking only ctx.route_map when it's empty on Wave 1/2 delegations"
+      ],
+      "detection_hint": "count requirements with category='page'",
+      "prompt_guidance": "Multi-page applications MUST have a shared navigation component in layout.tsx. Check requirements ledger for page count.",
+      "fix_pattern": "max(req_page_count, route_map_count) > 1 → inject nav mandate"
+    },
+    {
+      "id": "GAP-4",
+      "name": "env_var_bridge",
+      "gate_id": "call_subordinate_pre_delegation",
+      "category": "infrastructure",
+      "severity": "medium",
+      "constraint": "Pre-delegation env bridge MUST run before every subordinate dispatch. Pipeline: prompt_secret_extractor → pre_delegation_env_bridge → build_env_var_section.",
+      "anti_patterns": [
+        "Building env modules that duplicate existing ensure_env_before_delegation()",
+        "Silently swallowing env bridge exceptions"
+      ],
+      "detection_hint": "verified wired at call_subordinate.py:512",
+      "prompt_guidance": "All required API keys and secrets MUST be bridged to .env.local before subordinate starts working.",
+      "fix_pattern": "NO CODE CHANGE NEEDED — pipeline is fully wired with 3 modules + 3 checks"
+    },
+    {
+      "id": "GAP-5",
+      "name": "anti_mock_tdd",
+      "gate_id": "1.121,1.301,1.208,1.146,1.2085,1.2093",
+      "category": "quality",
+      "severity": "critical",
+      "constraint": "Production source code MUST NOT contain mock data, placeholder values, TODO comments, or deferred implementations. Three detection systems with 56+ patterns enforce this.",
+      "anti_patterns": [
+        "Building a 4th mock detection system",
+        "useState initialized with hardcoded data array",
+        "Comments containing 'for now', 'simplified version', 'in production this would'"
+      ],
+      "detection_hint": "MockDataGuard (24 patterns) + stub_detection (28 patterns) + quality_gate_mock_linter (4 patterns)",
+      "prompt_guidance": "Write REAL implementations with actual API calls, database queries, and business logic. Never use placeholder data.",
+      "fix_pattern": "NO NEW MODULE NEEDED — audit pattern coverage in existing 3 systems, circuit breaker at 3 blocks is correct"
+    },
+    {
+      "id": "GAP-6",
+      "name": "test_execution_via_code_execution_tool",
+      "gate_id": "code_execution_tool.test_commands",
+      "category": "tooling",
+      "severity": "critical",
+      "constraint": "Test execution MUST use code_execution_tool to run the project's test runner (npm test, npx jest, or npx vitest). The test command MUST detect the runner from package.json scripts and return structured results.",
+      "anti_patterns": [
+        "Nudger redirecting to non-existent tool actions (dead-end nudge)",
+        "Calling removed tools instead of code_execution_tool for test execution"
+      ],
+      "detection_hint": "verify test execution uses code_execution_tool with npm test / npx jest / npx vitest",
+      "prompt_guidance": "Use code_execution_tool to run tests via npm test, npx jest, or npx vitest. Check package.json scripts to determine the correct test command.",
+      "fix_pattern": "Universal consistency assertion: test guidance references only available tools (code_execution_tool)"
+    },
+    {
+      "id": "GAP-7",
+      "name": "content_fabrication_detection",
+      "gate_id": "0.065",
+      "category": "fidelity",
+      "severity": "medium",
+      "constraint": "Source code values (prices, URLs, brand names) MUST match the user prompt or content_manifest.json. Values present in source but NOT in prompt/manifest are FABRICATED.",
+      "anti_patterns": [
+        "Agent inventing pricing tiers not specified by user",
+        "Agent using placeholder URLs instead of prompt-specified URLs",
+        "Building a new check that duplicates Contract Assertions (0.06)"
+      ],
+      "detection_hint": "inverse of contract assertions — scan source for prices/URLs, cross-reference against prompt",
+      "prompt_guidance": "Use ONLY values from the user prompt and content_manifest.json. Never invent pricing, URLs, or brand names.",
+      "fix_pattern": "Extend existing Contract Assertions with inverse (fabrication) check, reuse prompt_contract_parser.py regex patterns"
+    }
+  ]
+}

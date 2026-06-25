@@ -1,0 +1,101 @@
+<div x-show="$store.systemStatus && ($store.systemStatus.isInitializing() || $store.systemStatus.hasError())"
+    class="startup-overlay" x-transition:fade>
+    <div class="startup-content">
+        <div class="welcome-logo-container" style="margin-bottom: 2rem;">
+            <img src="./public/agix_logo.png" alt="AGIX Logo" class="welcome-logo" />
+        </div>
+        <h2 x-text="$store.systemStatus?.hasError() ? 'Initialization Error' : 'System Initializing...'"></h2>
+        <div class="startup-spinner-container">
+            <div class="startup-spinner" x-show="$store.systemStatus && !$store.systemStatus.hasError()"></div>
+            <span class="material-symbols-outlined error-icon" x-show="$store.systemStatus?.hasError()">error</span>
+        </div>
+        <p class="startup-status" x-text="$store.systemStatus?.status"></p>
+        <div x-show="$store.systemStatus?.hasError()" class="startup-errors">
+            <template x-for="err in $store.systemStatus?.errors || []">
+                <div class="error-item" x-text="err"></div>
+            </template>
+        </div>
+        <p x-show="$store.systemStatus && !$store.systemStatus.hasError()" class="startup-hint">Please wait while we
+            prepare your
+            workspace.</p>
+    </div>
+</div>
+
+<style>
+    .startup-overlay {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: var(--color-background);
+        z-index: 9999;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        text-align: center;
+    }
+
+    .startup-content {
+        max-width: 400px;
+        padding: 2rem;
+    }
+
+    .startup-spinner-container {
+        margin: 2rem 0;
+        display: flex;
+        justify-content: center;
+    }
+
+    .startup-spinner {
+        width: 40px;
+        height: 40px;
+        border: 3px solid var(--color-border);
+        border-top: 3px solid var(--color-primary);
+        border-radius: 50%;
+        animation: spin 1s linear infinite;
+    }
+
+    @keyframes spin {
+        0% {
+            transform: rotate(0deg);
+        }
+
+        100% {
+            transform: rotate(360deg);
+        }
+    }
+
+    .error-icon {
+        font-size: 48px;
+        color: var(--color-error, #f44336);
+    }
+
+    .startup-status {
+        font-family: var(--font-mono, monospace);
+        color: var(--color-muted-foreground);
+        font-size: 0.9rem;
+        text-transform: uppercase;
+        letter-spacing: 0.1rem;
+    }
+
+    .startup-errors {
+        margin-top: 1rem;
+        padding: 1rem;
+        background: rgba(244, 67, 54, 0.1);
+        border-radius: 8px;
+        color: var(--color-error, #f44336);
+        font-size: 0.85rem;
+        text-align: left;
+    }
+
+    .error-item {
+        margin-bottom: 0.5rem;
+    }
+
+    .startup-hint {
+        margin-top: 1rem;
+        font-size: 0.9rem;
+        color: var(--color-muted-foreground);
+    }
+</style>

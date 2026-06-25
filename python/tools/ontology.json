@@ -1,0 +1,625 @@
+{
+    "categories": {
+        "core": [
+            "response",
+            "input",
+            "wait",
+            "notify_user",
+            "request_secret",
+            "acknowledge",
+            "mcp_server",
+            "read_file",
+            "save_deliverable",
+            "read_deliverables",
+            "create_skill",
+            "discover_skills",
+            "read_instructions",
+            "request_supervisor",
+            "create_chat",
+            "fetch_large_result",
+            "prepare_download",
+            "context7",
+            "list_projects",
+            "resolve_literals",
+            "move_chat_to_project"
+        ],
+        "files_read": [
+            "read_file",
+            "examine",
+            "docs_lookup",
+            "vision_load",
+            "view_skill",
+            "document_query",
+            "frontend_kb",
+            "build_kb",
+            "list_dir"
+        ],
+        "files_write": [
+            "write_to_file",
+            "apply_diff",
+            "replace_in_file",
+            "save_deliverable"
+        ],
+
+        "code_exec": [
+            "code_execution",
+            "code_execution_tool",
+            "terminal",
+            "database_repair",
+            "grit_transform",
+            "recursive_delete",
+            "standardize_demo_port"
+        ],
+        "system_tools": [
+            "code_execution",
+            "code_execution_tool",
+            "terminal"
+        ],
+        "code_audit": [
+            "analyze_architecture",
+            "codebase_auditor",
+            "repository_automation",
+            "ast_symbol_search",
+            "quality_gate",
+            "validate_tool",
+            "vulnerability_scanner",
+            "verify_github_path",
+            "content_quality_gate",
+            "aggregator_fidelity",
+            "borg_compare",
+            "ast_grep_search",
+            "validate_project",
+            "diagnose_project",
+            "code_self_check"
+        ],
+        "design": [
+            "read_file",
+            "save_deliverable",
+            "replace_in_deliverable",
+            "apply_diff_deliverable",
+            "read_deliverables",
+            "generate_image",
+            "extract_design_spec",
+            "examine",
+            "analyze_architecture",
+            "docs_lookup",
+            "vision_load",
+            "mermaid_renderer"
+        ],
+        "design_spec": [
+            "examine",
+            "analyze_architecture",
+            "docs_lookup",
+            "vision_load",
+            "mermaid_renderer",
+            "save_deliverable",
+            "replace_in_deliverable",
+            "apply_diff_deliverable"
+        ],
+        "deliverables": [
+            "save_deliverable",
+            "read_deliverables",
+            "replace_in_deliverable",
+            "apply_diff_deliverable"
+        ],
+        "memory": [
+            "maintain_memory_bank",
+            "memory_save",
+            "memory_load",
+            "memory_forget",
+            "memory_delete",
+            "inspect_agent_context",
+            "scratchpad_tool"
+        ],
+        "system": [
+            "settings_get",
+            "settings_set",
+            "telemetry_check",
+            "parameters_get",
+            "parameter_get",
+            "parameter_set",
+            "secret_get",
+            "secret_set",
+            "services_mgt"
+        ],
+        "dashboard_ops": [
+            "agile_dashboard",
+            "system_dashboard",
+            "session_tasks",
+            "behaviour_adjustment",
+            "system_write"
+        ],
+        "on_demand": [
+            "scheduler",
+            "scheduler_reset_task"
+        ],
+        "web_dev": [
+            "browser_agent",
+            "browser_subagent",
+            "scrape_url"
+        ],
+        "web_search": [
+            "browser_agent",
+            "browser_subagent",
+            "search_engine",
+            "scrape_url",
+            "mcp_onboard",
+            "configure_webhook",
+            "google_chat",
+            "growth_scout",
+            "zoho_crm",
+            "perplexity_ask",
+            "tavily_search",
+            "tavily_extract",
+            "tavily_research",
+            "tavily_crawl",
+            "context7",
+            "fact_check"
+        ],
+        "orchestration": [
+            "call_subordinate",
+            "call_subordinate_batch",
+            "generate_guid",
+            "build_navigation_map",
+            "save_deliverable",
+            "read_file",
+            "wait",
+            "fan_out_subordinates",
+            "task_state",
+            "update_task_list",
+            "requirements",
+            "setup_project",
+            "configure_project"
+        ],
+        "routing": [
+            "route_to_agent"
+        ],
+        "thinking": [
+            "sequentialthinking",
+            "sequential_thinking",
+            "five_whys"
+        ],
+        "sales_tools": [
+            "campaign_planner",
+            "competitive_matrix",
+            "content_brief_generator",
+            "deal_scorecard",
+            "email_sequence_builder",
+            "growth_tip_generator",
+            "meeting_prep",
+            "playbook_architect",
+            "pptx_toolkit",
+            "prospect_profiler",
+            "roi_calculator"
+        ],
+        "research": [
+            "perplexity_ask",
+            "tavily_search",
+            "tavily_extract",
+            "tavily_research",
+            "tavily_crawl",
+            "context7",
+            "fact_check",
+            "docs_lookup"
+        ],
+        "dev_services": [
+            "services_mgt",
+            "deploy_tool"
+        ],
+        "requirements_read": [
+            "requirements"
+        ],
+        "github_read": [
+            "issue_read",
+            "get_issue",
+            "list_issues",
+            "list_issue_types",
+            "search_issues",
+            "pull_request_read",
+            "list_pull_requests",
+            "search_pull_requests",
+            "get_pull_request",
+            "list_branches",
+            "list_commits",
+            "get_commit",
+            "get_file_contents",
+            "search_code",
+            "get_label",
+            "list_tags",
+            "get_tag",
+            "list_releases",
+            "get_latest_release",
+            "get_release_by_tag",
+            "get_repository",
+            "search_repositories",
+            "get_me",
+            "get_wiki_page",
+            "list_wiki_pages",
+            "list_repo_issues",
+            "list_repo_labels",
+            "list_repo_milestones",
+            "list_issue_comments",
+            "list_issue_attachments",
+            "list_issue_blocking",
+            "list_issue_dependencies"
+        ]
+    },
+    "profile_meta": {
+        "default": {
+            "role": "Router",
+            "description": "Routes requests to specialist agents",
+            "route_when": "General requests that need routing to the right specialist",
+            "never_delegate": null,
+            "output_tool": "response",
+            "output_location": "Chat response"
+        },
+        "multiagentdev": {
+            "role": "Orchestration Hub",
+            "description": "Full-stack dev orchestrator — delegates to code, frontend, architect, researcher, e2e",
+            "route_when": "Always — it's the hub. All BLOCKED responses and multi-step dev tasks go here",
+            "never_delegate": null,
+            "output_tool": "response",
+            "output_location": "Chat response"
+        },
+        "code": {
+            "role": "Full-Stack Developer",
+            "description": "Writes/edits ALL source code, runs commands, installs packages, TDD, scaffold, build, deploy",
+            "route_when": "Source code, TDD tests, implementation, scaffold, build, terminal commands",
+            "never_delegate": null,
+            "output_tool": "write_to_file / replace_in_file / code_execution_tool",
+            "output_location": "Project source tree"
+        },
+        "frontend": {
+            "role": "UI/UX Designer",
+            "description": "Design tokens, mockups, component specs, visual review. Does NOT write source code",
+            "route_when": "UI mockups, design tokens, visual assets, images (Phase 2.3 and 5.0.5 ONLY)",
+            "never_delegate": "Source code, TDD, tests, implementation, Phase 3+, write_to_file, code_execution",
+            "output_tool": "save_deliverable (with output_path)",
+            "output_location": "docs/ directory only"
+        },
+        "architect": {
+            "role": "System Architect",
+            "description": "Architecture docs, BDD scenarios, Prisma schema specs, decomposition planning",
+            "route_when": "System design, architecture planning, BDD scenarios, specs",
+            "never_delegate": "Source code, implementation, tests, write_to_file, code_execution",
+            "output_tool": "save_deliverable (with output_path)",
+            "output_location": "docs/ directory only"
+        },
+        "researcher": {
+            "role": "Research Analyst",
+            "description": "Web research, API docs, version checking, market analysis, fact-checking",
+            "route_when": "External info, API docs, market research, web search, fact-checking",
+            "never_delegate": "Source code, implementation, tests, write_to_file, code_execution",
+            "output_tool": "save_deliverable (with output_path)",
+            "output_location": "docs/ directory only"
+        },
+        "debug": {
+            "role": "Debugger",
+            "description": "Diagnoses bugs, reads logs, runs commands, traces errors",
+            "route_when": "Bug diagnosis, log reading, error tracing, code quality audit",
+            "never_delegate": "File creation/editing (write_to_file, replace_in_file)",
+            "output_tool": "response",
+            "output_location": "Chat response"
+        },
+        "review": {
+            "role": "Code Reviewer",
+            "description": "Reads code, audits quality, suggests improvements",
+            "route_when": "Code review, quality auditing, improvement suggestions",
+            "never_delegate": "Source code, implementation, tests, write_to_file, code_execution",
+            "output_tool": "response",
+            "output_location": "Chat response"
+        },
+        "e2e": {
+            "role": "QA / E2E Tester",
+            "description": "Runs tests, browser verification, dev server management",
+            "route_when": "End-to-end testing, browser verification, dev service management",
+            "never_delegate": "File creation/editing (write_to_file, replace_in_file)",
+            "output_tool": "response",
+            "output_location": "Chat response"
+        },
+        "ask": {
+            "role": "Research + Search",
+            "description": "Combined web search and research capabilities",
+            "route_when": "Web search + research combined queries",
+            "never_delegate": "Source code, implementation, write_to_file",
+            "output_tool": "response",
+            "output_location": "Chat response"
+        },
+        "browser": {
+            "role": "Web Browser",
+            "description": "Web browsing, scraping, page interaction",
+            "route_when": "Web browsing, scraping, page verification",
+            "never_delegate": "Source code, implementation, write_to_file",
+            "output_tool": "response",
+            "output_location": "Chat response"
+        },
+        "hacker": {
+            "role": "Security Developer",
+            "description": "Security testing with code+web combined capabilities",
+            "route_when": "Security testing, penetration testing, vulnerability exploitation",
+            "never_delegate": null,
+            "output_tool": "write_to_file / code_execution_tool",
+            "output_location": "Project source tree"
+        },
+        "dashboard": {
+            "role": "System Monitor",
+            "description": "System monitoring, dashboard operations, agile board management",
+            "route_when": "System monitoring, dashboard ops, agile board",
+            "never_delegate": "Source code, implementation, code_execution",
+            "output_tool": "response",
+            "output_location": "Chat response"
+        },
+        "security_auditor": {
+            "role": "Security Auditor",
+            "description": "Security scanning, vulnerability assessment, code audit",
+            "route_when": "Security scanning, vulnerability assessment, compliance checks",
+            "never_delegate": null,
+            "output_tool": "write_to_file / code_execution_tool",
+            "output_location": "Project source tree"
+        },
+        "mcp_builder": {
+            "role": "MCP Tool Builder",
+            "description": "Builds and configures MCP tools and integrations",
+            "route_when": "MCP tool building, tool configuration, integration setup",
+            "never_delegate": null,
+            "output_tool": "write_to_file / code_execution_tool",
+            "output_location": "Project source tree"
+        },
+        "alex": {
+            "role": "Account Executive",
+            "description": "Sales orchestration, account management, deal strategy",
+            "route_when": "Sales tasks, account strategy, deal management",
+            "never_delegate": null,
+            "output_tool": "save_deliverable",
+            "output_location": "deliverables/"
+        },
+        "account-leader": {
+            "role": "Account Leader",
+            "description": "Account strategy, client relationship orchestration",
+            "route_when": "Account strategy, client relationship management",
+            "never_delegate": null,
+            "output_tool": "save_deliverable",
+            "output_location": "deliverables/"
+        },
+        "marketing-lead": {
+            "role": "Marketing Lead",
+            "description": "Marketing strategy, campaign planning, content orchestration",
+            "route_when": "Marketing campaigns, content strategy, brand management",
+            "never_delegate": null,
+            "output_tool": "save_deliverable",
+            "output_location": "deliverables/"
+        },
+        "sales-enabler": {
+            "role": "Sales Enabler",
+            "description": "Sales enablement materials, playbooks, competitive intelligence",
+            "route_when": "Sales enablement, playbooks, competitive analysis",
+            "never_delegate": null,
+            "output_tool": "save_deliverable",
+            "output_location": "deliverables/"
+        },
+        "content-writer": {
+            "role": "Content Writer",
+            "description": "Professional content creation, copywriting, report synthesis",
+            "route_when": "Content creation, copywriting, report writing",
+            "never_delegate": null,
+            "output_tool": "save_deliverable",
+            "output_location": "deliverables/"
+        }
+    },
+    "profiles": {
+        "default": [
+            "core",
+            "routing",
+            "files_read",
+            "deliverables",
+            "memory",
+            "thinking",
+            "github_read"
+        ],
+        "multiagentdev": [
+            "core",
+            "files_read",
+            "orchestration",
+            "code_audit",
+            "deliverables",
+            "memory",
+            "thinking",
+            "github_read"
+        ],
+        "code": [
+            "core",
+            "files_read",
+            "files_write",
+            "code_exec",
+            "code_audit",
+            "requirements_read",
+            "research",
+            "memory",
+            "system",
+            "thinking",
+            "github_read"
+        ],
+        "frontend": [
+            "core",
+            "files_read",
+            "design",
+            "deliverables",
+            "requirements_read",
+            "research",
+            "memory",
+            "thinking",
+            "github_read"
+        ],
+        "researcher": [
+            "core",
+            "files_read",
+            "deliverables",
+            "requirements_read",
+            "memory",
+            "web_search",
+            "thinking",
+            "github_read"
+        ],
+        "debug": [
+            "core",
+            "files_read",
+            "code_exec",
+            "code_audit",
+            "deliverables",
+            "requirements_read",
+            "research",
+            "memory",
+            "system",
+            "thinking",
+            "github_read"
+        ],
+        "review": [
+            "core",
+            "files_read",
+            "code_audit",
+            "deliverables",
+            "requirements_read",
+            "memory",
+            "thinking",
+            "github_read"
+        ],
+        "ask": [
+            "core",
+            "files_read",
+            "deliverables",
+            "web_search",
+            "research",
+            "memory",
+            "thinking",
+            "github_read"
+        ],
+        "e2e": [
+            "core",
+            "files_read",
+            "code_exec",
+            "deliverables",
+            "requirements_read",
+            "research",
+            "memory",
+            "web_dev",
+            "dev_services",
+            "thinking",
+            "github_read"
+        ],
+        "browser": [
+            "core",
+            "files_read",
+            "deliverables",
+            "memory",
+            "web_search",
+            "thinking",
+            "github_read"
+        ],
+        "architect": [
+            "core",
+            "orchestration",
+            "files_read",
+            "design_spec",
+            "memory",
+            "thinking",
+            "github_read"
+        ],
+        "alex": [
+            "core",
+            "files_read",
+            "orchestration",
+            "deliverables",
+            "web_search",
+            "sales_tools",
+            "memory",
+            "thinking",
+            "github_read"
+        ],
+        "account-leader": [
+            "core",
+            "orchestration",
+            "files_read",
+            "deliverables",
+            "web_search",
+            "sales_tools",
+            "memory",
+            "thinking",
+            "github_read"
+        ],
+        "marketing-lead": [
+            "core",
+            "orchestration",
+            "files_read",
+            "deliverables",
+            "web_search",
+            "sales_tools",
+            "memory",
+            "thinking",
+            "github_read"
+        ],
+        "sales-enabler": [
+            "core",
+            "orchestration",
+            "files_read",
+            "deliverables",
+            "web_search",
+            "sales_tools",
+            "memory",
+            "thinking",
+            "github_read"
+        ],
+        "content-writer": [
+            "core",
+            "files_read",
+            "design",
+            "web_search",
+            "sales_tools",
+            "memory",
+            "thinking",
+            "github_read"
+        ],
+        "hacker": [
+            "core",
+            "files_read",
+            "files_write",
+            "code_exec",
+            "code_audit",
+            "requirements_read",
+            "web_search",
+            "memory",
+            "thinking",
+            "github_read"
+        ],
+        "dashboard": [
+            "core",
+            "files_read",
+            "code_exec",
+            "system",
+            "dashboard_ops",
+            "design",
+            "memory",
+            "thinking",
+            "github_read"
+        ],
+        "security_auditor": [
+            "core",
+            "files_read",
+            "files_write",
+            "code_exec",
+            "code_audit",
+            "memory",
+            "thinking",
+            "github_read"
+        ],
+        "mcp_builder": [
+            "core",
+            "files_read",
+            "files_write",
+            "code_exec",
+            "web_search",
+            "memory",
+            "thinking",
+            "github_read"
+        ]
+    }
+}

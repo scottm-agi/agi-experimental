@@ -1,0 +1,45 @@
+{
+    "_comment": "Swarm Registry \u2014 defines delegation boundaries. Orchestrators can reach their swarm + other orchestrators. Default can reach orchestrators + independent agents (not in any swarm).",
+    "orchestrators": [
+        "multiagentdev",
+        "alex"
+    ],
+    "swarms": {
+        "multiagentdev": {
+            "description": "Development orchestrator \u2014 coordinates specialist dev agents",
+            "allowed_profiles": [
+                "architect",
+                "code",
+                "debug",
+                "review",
+                "ask",
+                "frontend",
+                "researcher",
+                "e2e",
+                "browser"
+            ]
+        },
+        "alex": {
+            "description": "Sales & marketing orchestrator \u2014 coordinates business agents",
+            "allowed_profiles": [
+                "account-leader",
+                "marketing-lead",
+                "sales-enabler",
+                "content-writer",
+                "researcher"
+            ]
+        },
+        "default": {
+            "description": "Default agent \u2014 routes to orchestrators and independent agents, cannot bypass orchestrators to reach their swarm members directly",
+            "allowed_profiles": [
+                "multiagentdev",
+                "alex",
+                "hacker",
+                "mcp_builder",
+                "security_auditor",
+                "dashboard",
+                "default"
+            ]
+        }
+    }
+}

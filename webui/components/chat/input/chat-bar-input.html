@@ -1,0 +1,707 @@
+<html>
+
+<head>
+    <script type="module">
+        import { store as speechStore } from "../speech/speech-store.js";
+        import { store as attachmentsStore } from "../attachments/attachmentsStore.js";
+        import { store as fullScreenStore } from "../../modals/full-screen-input/full-screen-store.js";
+    </script>
+</head>
+
+<body>
+    <div class="input-row">
+        <!-- Common Prompts icon -->
+        <div class="prompts-wrapper mobile-hidden" x-data="{ showTooltip: false }">
+            <button class="prompts-icon"
+                @click="$store.chatInput.showCommonPrompts = !$store.chatInput.showCommonPrompts; if($store.chatInput.showCommonPrompts) $store.chatInput.loadCommonPrompts()"
+                @mouseover="showTooltip = true" @mouseleave="showTooltip = false" aria-label="Common prompts">
+                <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="currentColor">
+                    <path d="M7 2v11h3v9l7-12h-4l4-8H7z" />
+                </svg>
+            </button>
+            <div x-show="showTooltip" class="tooltip">Common Prompts</div>
+
+            <!-- Dropdown -->
+            <div class="prompts-dropdown" x-show="$store.chatInput.showCommonPrompts"
+                x-transition:enter="transition ease-out duration-200" x-transition:enter-start="opacity-0 translate-y-2"
+                x-transition:enter-end="opacity-100 translate-y-0" x-transition:leave="transition ease-in duration-150"
+                x-transition:leave-start="opacity-100 translate-y-0" x-transition:leave-end="opacity-0 translate-y-2"
+                @click.away="$store.chatInput.showCommonPrompts = false" x-cloak @click.stop>
+                <div class="prompts-header">Common Prompts</div>
+                <div class="prompts-search-container">
+                    <input type="text" x-model="$store.chatInput.commonPromptsSearch" placeholder="Search prompts..."
+                        class="prompts-search-input" @click.stop>
+                </div>
+                <template x-for="p in $store.chatInput.getFilteredPrompts()" :key="p.prompt">
+                    <div class="prompt-item" @click="$store.chatInput.selectPrompt(p.prompt)">
+                        <span class="prompt-text" x-text="$store.chatInput.formatPromptTitle(p.prompt)"
+                            :title="p.prompt"></span>
+                        <div class="prompt-meta">
+                            <span class="prompt-count" x-text="p.count"></span>
+                            <button class="prompt-delete" @click.stop="$store.chatInput.deletePrompt(p.prompt)"
+                                aria-label="Delete prompt">
+                                <span class="material-symbols-outlined" style="font-size: 14px;">close</span>
+                            </button>
+                        </div>
+                    </div>
+                </template>
+                <div x-show="$store.chatInput.commonPrompts.length === 0" class="prompt-empty"> No frequent prompts
+                    found </div>
+            </div>
+        </div>
+
+        <!-- Attachment icon with tooltip -->
+        <div class="attachment-wrapper mobile-hidden" x-data="{ showTooltip: false }">
+            <label for="file-input" class="attachment-icon" @mouseover="showTooltip = true"
+                @mouseleave="showTooltip = false">
+                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="currentColor">
+                    <path
+                        d="M16.5 6v11.5c0 2.21-1.79 4-4 4s-4-1.79-4-4V5c0-1.38 1.12-2.5 2.5-2.5s2.5 1.12 2.5 2.5v10.5c0 .55-.45 1-1 1s-1-.45-1-1V6H10v9.5c0 1.38 1.12 2.5 2.5 2.5s2.5-1.12 2.5-2.5V5c0-2.21-1.79-4-4-4S7 2.79 7 5v12.5c0 3.04 2.46 5.5 5.5 5.5s5.5-2.46 5.5-5.5V6h-1.5z" />
+                </svg>
+            </label>
+            <input type="file" id="file-input" accept="*" multiple style="display: none"
+                @change="$store.chatAttachments.handleFileUpload($event)">
+
+            <div x-show="showTooltip" class="tooltip">Add attachments to the message</div>
+        </div>
+
+        <!-- Dynamic Hint Chips -->
+        <div class="dynamic-hints" x-show="$store.chatInput.dynamicHints.length > 0" x-transition x-cloak>
+            <template x-for="hint in $store.chatInput.dynamicHints" :key="hint.text">
+                <button class="hint-chip" @click="$store.chatInput.selectHint(hint.text)" :title="hint.text">
+                    <span class="material-symbols-outlined hint-chip-icon" x-show="hint.icon" x-text="hint.icon"></span>
+                    <span class="hint-chip-label" x-text="hint.label || hint.text"></span>
+                </button>
+            </template>
+        </div>
+
+        <!-- Container for textarea and expand button -->
+        <div id="chat-input-container" style="position: relative;">
+            <!-- Quoted Context Preview -->
+            <div class="quoted-context-preview" x-show="$store.chatInput.quotedContext" x-transition x-cloak>
+                <div class="quote-content">
+                    <span class="material-symbols-outlined quote-icon">reply</span>
+                    <span class="quote-text" x-text="$store.chatInput.quotedContext?.text"></span>
+                </div>
+                <button class="clear-quote-btn" @click="$store.chatInput.clearQuote()" aria-label="Clear quote">
+                    <span class="material-symbols-outlined">close</span>
+                </button>
+            </div>
+
+
+            <textarea id="chat-input"
+                placeholder="Define your mission, mention integrations (GitHub, Google, etc.), provide API keys if needed, and describe the desired outcome..."
+                rows="1" @keydown.enter="if (!$event.shiftKey && !$event.isComposing && $event.keyCode !== 229) { 
+                        $event.preventDefault(); $store.chatInput.sendMessage(); 
+                }" @input="$store.chatInput.handleInput($event)"
+                @focus="$store.chatInput.handleInput($event)"></textarea>
+            <button id="expand-button" @click="$store.fullScreenInputModal.openModal()" aria-label="Expand input">
+                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor">
+                    <path d="M7 14H5v5h5v-2H7v-3zm-2-4h2V7h3V5H5v5zm12 7h-3v2h5v-5h-2v3zM14 5v2h3v3h2V5h-5z" />
+                </svg>
+            </button>
+
+            <!-- Auto-attachment warning badge -->
+            <div class="auto-attach-badge" x-show="$store.chatInput.autoAttachWarning" x-transition x-cloak>
+                <span class="material-symbols-outlined auto-attach-icon">attach_file</span>
+                <span class="auto-attach-text">
+                    <span x-text="$store.chatInput.charCount"></span> chars — will auto-attach as .md
+                </span>
+            </div>
+        </div>
+
+        <!-- Save as Template button -->
+        <button class="chat-button" id="save-prompt-button" aria-label="Save as Template"
+            x-show="$store.chatInput.message.trim().length > 0" @click="$store.chatInput.saveAsGoldenPrompt()"
+            data-tooltip="Save as Golden Prompt">
+            <span class="material-symbols-outlined" style="font-size: 20px;">star</span>
+        </button>
+
+        <!-- Send button -->
+        <button class="chat-button" id="send-button" aria-label="Send message" @click="$store.chatInput.sendMessage()">
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100">
+                <path d="M25 20 L75 50 L25 80" fill="none" stroke="currentColor" stroke-width="15"></path>
+            </svg>
+        </button>
+
+        <!-- Microphone button -->
+        <button class="chat-button mic-inactive" id="microphone-button" aria-label="Start/Stop recording"
+            @click="$store.speech.handleMicrophoneClick()" x-effect="$store.speech.updateMicrophoneButtonUI()">
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 18" fill="currentColor">
+                <path
+                    d="m8,12c1.66,0,3-1.34,3-3V3c0-1.66-1.34-3-3-3s-3,1.34-3,3v6c0,1.66,1.34,3,3,3Zm-1,1.9c-2.7-.4-4.8-2.6-5-5.4H0c.2,3.8,3.1,6.9,7,7.5v2h2v-2c3.9-.6,6.8-3.7,7-7.5h-2c-.2,2.8-2.3,5-5,5.4h-2Z" />
+            </svg>
+        </button>
+    </div>
+    </div>
+
+    <!-- Full Screen Input Modal -->
+    <x-component path="modals/full-screen-input/full-screen-input.html"></x-component>
+
+
+    <style>
+        /* Layout rows */
+        .input-row {
+            display: flex;
+            align-items: center;
+            gap: var(--spacing-xs);
+            width: 100%;
+            white-space: nowrap;
+        }
+
+        /* Attachments icon + tooltip */
+        .attachment-wrapper {
+            position: relative;
+            flex-shrink: 0;
+        }
+
+        .attachment-icon {
+            cursor: pointer;
+            color: var(--color-text);
+            opacity: 0.7;
+            transition: opacity 0.2s ease;
+            display: flex;
+            align-items: center;
+        }
+
+        .attachment-icon:hover {
+            opacity: 1;
+        }
+
+        .attachment-icon:active {
+            opacity: 0.5;
+        }
+
+        /* Common Prompts */
+        .prompts-wrapper {
+            position: relative;
+            flex-shrink: 0;
+        }
+
+        .prompts-icon {
+            background: none;
+            border: none;
+            padding: 0;
+            cursor: pointer;
+            color: var(--color-text);
+            opacity: 0.7;
+            transition: opacity 0.2s ease;
+            display: flex;
+            align-items: center;
+        }
+
+        .prompts-icon:hover {
+            opacity: 1;
+        }
+
+        .prompts-icon:active {
+            opacity: 0.5;
+        }
+
+        .prompts-dropdown {
+            position: absolute;
+            bottom: 100%;
+            left: 0;
+            margin-bottom: 12px;
+            background-color: var(--color-secondary);
+            border: 1px solid var(--color-border);
+            border-radius: 8px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.4);
+            width: 280px;
+            max-height: 320px;
+            overflow-y: auto;
+            z-index: 1001;
+            scrollbar-width: thin;
+        }
+
+        .prompts-header {
+            padding: 10px 12px;
+            font-size: 12.5px;
+            font-weight: bold;
+            text-transform: uppercase;
+            color: var(--color-text-muted);
+            border-bottom: 1px solid var(--color-border);
+            letter-spacing: 0.05em;
+        }
+
+        .prompts-search-container {
+            padding: 8px 12px;
+            border-bottom: 1px solid var(--color-border);
+        }
+
+        .prompts-search-input {
+            width: 100%;
+            padding: 6px 10px;
+            font-size: 14px;
+            background-color: var(--color-input);
+            border: 1px solid var(--color-border);
+            border-radius: 4px;
+            color: var(--color-text);
+            outline: none;
+        }
+
+        .prompts-search-input:focus {
+            border-color: var(--color-primary);
+        }
+
+        .prompt-item {
+            padding: 12px;
+            cursor: pointer;
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            gap: 10px;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+            transition: background 0.2s;
+            white-space: normal;
+        }
+
+        .prompt-item:hover {
+            background-color: rgba(255, 255, 255, 0.08);
+        }
+
+        .prompt-item:last-child {
+            border-bottom: none;
+        }
+
+        .prompt-text {
+            font-size: 14px;
+            line-height: 1.4;
+            color: var(--color-text);
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+            flex-grow: 1;
+            text-align: left;
+        }
+
+        .prompt-meta {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            flex-shrink: 0;
+        }
+
+        .prompt-count {
+            font-size: 12px;
+            padding: 2px 7px;
+            background: rgba(0, 0, 0, 0.3);
+            border: 1px solid var(--color-border);
+            border-radius: 10px;
+            color: var(--color-text-muted);
+            flex-shrink: 0;
+        }
+
+        .prompt-delete {
+            background: none;
+            border: none;
+            padding: 2px;
+            cursor: pointer;
+            color: var(--color-text-muted);
+            opacity: 0.5;
+            transition: all 0.2s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 4px;
+        }
+
+        .prompt-delete:hover {
+            opacity: 1;
+            color: #ff5555;
+            background: rgba(255, 85, 85, 0.1);
+        }
+
+        .prompt-empty {
+            padding: 16px;
+            font-size: 12px;
+            color: var(--color-text-muted);
+            text-align: center;
+            font-style: italic;
+        }
+
+        .tooltip {
+            position: absolute;
+            bottom: 100%;
+            left: 50%;
+            transform: translateX(-50%);
+            padding: 8px;
+            background-color: var(--color-secondary);
+            color: var(--color-text);
+            border-radius: 4px;
+            font-size: 12px;
+            white-space: nowrap;
+            z-index: 1002;
+            margin-bottom: 5px;
+        }
+
+        /* Text input */
+        #chat-input-container {
+            position: relative;
+            width: 100%;
+        }
+
+        #chat-input {
+            background-color: var(--color-input);
+            border: 1px solid var(--color-border);
+            border-radius: 8px;
+            color: var(--color-text);
+            flex-grow: 1;
+            font-family: "Roboto Mono", monospace;
+            font-optical-sizing: auto;
+            -webkit-font-optical-sizing: auto;
+            font-size: 0.9rem;
+            max-height: 7rem;
+            min-height: 3.05rem;
+            width: 100%;
+            padding: 1rem 40px 1rem 1rem;
+            margin-right: var(--spacing-xs);
+            overflow-y: auto;
+            scroll-behavior: smooth;
+            resize: none;
+            align-content: start;
+            background-clip: border-box;
+            transition: all 0.3s ease;
+            -webkit-transition: all 0.3s ease;
+        }
+
+        #chat-input::-webkit-scrollbar {
+            width: 6px;
+            height: 6px;
+        }
+
+        #chat-input::-webkit-scrollbar-track {
+            background: transparent;
+            margin: 4px 0;
+            border-radius: 6px;
+        }
+
+        #chat-input::-webkit-scrollbar-thumb {
+            background-color: rgba(155, 155, 155, 0.5);
+            border-radius: 6px;
+            -webkit-transition: background-color 0.2s ease;
+            transition: background-color 0.2s ease;
+        }
+
+        #chat-input::-webkit-scrollbar-thumb:hover {
+            background-color: rgba(155, 155, 155, 0.7);
+        }
+
+        #chat-input:focus {
+            background-color: var(--color-input-focus);
+            outline: none !important;
+        }
+
+        #chat-input::placeholder {
+            color: var(--color-text-muted);
+            opacity: 0.7;
+        }
+
+        #expand-button {
+            position: absolute;
+            top: 12px;
+            right: 10px;
+            background: transparent;
+            border: none;
+            cursor: pointer;
+            font-size: 1.2rem;
+            color: var(--color-text);
+            opacity: 0.4;
+            transition: opacity 0.2s;
+        }
+
+        #expand-button:hover {
+            opacity: 0.7;
+        }
+
+        #expand-button:active {
+            opacity: 1;
+        }
+
+        #expand-button svg {
+            width: 1.3rem;
+            height: 1.3rem;
+        }
+
+        /* Chat buttons (Send/Mic) */
+        #chat-buttons-wrapper {
+            gap: var(--spacing-xs);
+            padding-left: var(--spacing-xs);
+            line-height: 0.5rem;
+            display: -webkit-flex;
+            display: flex;
+        }
+
+        .chat-button {
+            border: none;
+            border-radius: 50%;
+            color: var(--color-background);
+            cursor: pointer;
+            font-size: var(--font-size-normal);
+            height: 2.525rem;
+            width: 2.525rem;
+            margin: 0 0.18rem 0 0 var(--spacing-xs);
+            display: -webkit-flex;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-shrink: 0;
+            flex-grow: 0;
+            min-width: 2.525rem;
+            -webkit-transition: all var(--transition-speed), transform 0.1s ease-in-out;
+            transition: all var(--transition-speed), transform 0.1s ease-in-out;
+        }
+
+        #send-button {
+            background-color: var(--color-accent-dark);
+            color: #ffffff;
+        }
+
+        #send-button:hover {
+            -webkit-transform: scale(1.05);
+            transform: scale(1.05);
+            transform-origin: center;
+            opacity: 1;
+            box-shadow: var(--shadow-accent);
+        }
+
+        #send-button:active {
+            -webkit-transform: scale(1);
+            transform: scale(1);
+            transform-origin: center;
+            opacity: 0.7;
+        }
+
+        #save-prompt-button {
+            background-color: transparent;
+            border: 1px solid var(--color-border);
+            color: var(--color-text-muted);
+        }
+
+        #save-prompt-button:hover {
+            color: #ffc107;
+            border-color: #ffc107;
+            background: rgba(255, 193, 7, 0.1);
+        }
+
+        .chat-button svg {
+            width: 1.5rem;
+            height: 1.5rem;
+        }
+
+        /* Microphone button */
+        .chat-button.mic-inactive svg {
+            /* Add specific styles if needed */
+        }
+
+        /* Tooltip */
+        .tooltip {
+            position: absolute;
+            bottom: 100%;
+            left: 50%;
+            transform: translateX(0%);
+            padding: 8px;
+            background-color: var(--color-secondary);
+            color: var(--color-text);
+            border-radius: 4px;
+            font-size: 12px;
+            white-space: nowrap;
+            z-index: 1002;
+        }
+
+        /* Quoted Context Preview */
+        .quoted-context-preview {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            background-color: var(--color-background-hover);
+            border-left: 3px solid var(--color-primary);
+            border-top-right-radius: 8px;
+            border-top-left-radius: 4px;
+            padding: 8px 12px;
+            margin-bottom: -1px;
+            position: relative;
+            z-index: 5;
+            animation: slideUp 0.2s ease-out;
+            max-width: 100%;
+            box-sizing: border-box;
+        }
+
+        @keyframes slideUp {
+            from {
+                transform: translateY(10px);
+                opacity: 0;
+            }
+
+            to {
+                transform: translateY(0);
+                opacity: 1;
+            }
+        }
+
+        .quote-content {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            overflow: hidden;
+            flex-grow: 1;
+            min-width: 0;
+        }
+
+        .quote-icon {
+            font-size: 18px;
+            color: var(--color-primary);
+            flex-shrink: 0;
+        }
+
+        .quote-text {
+            font-size: 13px;
+            color: var(--color-text-muted);
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            font-style: italic;
+            min-width: 0;
+            max-width: 100%;
+        }
+
+        .clear-quote-btn {
+            background: none;
+            border: none;
+            color: var(--color-text-muted);
+            cursor: pointer;
+            padding: 4px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            opacity: 0.6;
+            transition: opacity 0.2s;
+            flex-shrink: 0;
+        }
+
+        .clear-quote-btn:hover {
+            opacity: 1;
+            color: var(--color-text);
+        }
+
+        .clear-quote-btn .material-symbols-outlined {
+            font-size: 16px;
+        }
+
+        /* Adjust chat input when quote is present */
+        .quoted-context-preview+#chat-input {
+            border-top-left-radius: 0;
+            border-top-right-radius: 0;
+        }
+
+        /* Dynamic Hints */
+        .dynamic-hints {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 6px;
+            margin-bottom: 8px;
+            animation: hintsFadeIn 0.3s ease-out;
+        }
+
+        @keyframes hintsFadeIn {
+            from { opacity: 0; transform: translateY(8px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .hint-chip {
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+            padding: 6px 14px;
+            background: var(--color-background-hover, rgba(99, 102, 241, 0.08));
+            border: 1px solid var(--color-border);
+            border-radius: 20px;
+            color: var(--color-text);
+            font-size: 13px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            white-space: nowrap;
+            max-width: 280px;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .hint-chip:hover {
+            background: var(--color-primary, #6366f1);
+            color: #fff;
+            border-color: var(--color-primary, #6366f1);
+            transform: translateY(-1px);
+            box-shadow: 0 2px 8px rgba(99, 102, 241, 0.25);
+        }
+
+        .hint-chip:active {
+            transform: translateY(0);
+        }
+
+        .hint-chip-icon {
+            font-size: 16px;
+            opacity: 0.7;
+        }
+
+        .hint-chip-label {
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+
+        /* Auto-attachment warning */
+        .auto-attach-badge {
+            position: absolute;
+            bottom: 6px;
+            left: 12px;
+            display: flex;
+            align-items: center;
+            gap: 4px;
+            padding: 3px 10px;
+            background: rgba(99, 102, 241, 0.15);
+            border: 1px solid rgba(99, 102, 241, 0.3);
+            border-radius: 12px;
+            font-size: 11px;
+            color: #818cf8;
+            z-index: 10;
+            animation: hintsFadeIn 0.2s ease-out;
+            pointer-events: none;
+        }
+
+        .auto-attach-icon {
+            font-size: 14px;
+        }
+
+        .auto-attach-text {
+            white-space: nowrap;
+        }
+
+        /* Responsive tweaks */
+        @media (max-width: 640px) {
+            #chat-input {
+                min-height: 5.3rem;
+                align-content: start;
+            }
+
+            #chat-buttons-wrapper {
+                display: flex;
+                gap: var(--spacing-xs);
+                padding: 0 0 0 var(--spacing-sm) !important;
+                width: 3.5rem;
+                flex-wrap: wrap;
+                -webkit-transition: all 0.3s ease;
+                transition: all 0.3s ease;
+            }
+        }
+
+        @media (min-width: 768px) {
+            #chat-buttons-wrapper {
+                flex-wrap: nowrap;
+                -webkit-flex-wrap: nowrap;
+                flex-wrap: nowrap;
+            }
+        }
+    </style>
+</body>
+
+</html>

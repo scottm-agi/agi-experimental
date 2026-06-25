@@ -1,0 +1,229 @@
+<html>
+<head>
+    <title>Browser Agent Overlay</title>
+</head>
+<body>
+    <!-- Issue #723: Expandable browser agent overlay pane -->
+    <div class="browser-overlay" x-data="browserOverlay()">
+        <!-- Toggle bar -->
+        <div class="browser-overlay-toggle" @click="toggleExpand()">
+            <span class="browser-overlay-icon">🌐</span>
+            <span class="browser-overlay-title">Browser Agent</span>
+            <span class="browser-overlay-status" x-show="active">
+                <span class="pulse-dot"></span> Active
+            </span>
+            <span class="browser-overlay-expand" x-text="expanded ? '▼' : '▲'"></span>
+        </div>
+
+        <!-- Expandable content pane -->
+        <div class="browser-overlay-content" x-show="expanded" x-collapse>
+            <!-- Screenshot display -->
+            <div class="browser-screenshot-container">
+                <img class="browser-screenshot"
+                     :src="screenshotUrl"
+                     x-show="screenshotUrl"
+                     alt="Browser screenshot" />
+                <div class="no-screenshot" x-show="!screenshotUrl">
+                    No screenshot available
+                </div>
+            </div>
+
+            <!-- Pause/unpause controls -->
+            <div class="browser-controls">
+                <button class="btn browser-pause-btn"
+                        @click="togglePause()"
+                        :class="{ 'paused': paused }">
+                    <span x-text="paused ? '▶ Resume' : '⏸ Pause'"></span>
+                </button>
+                <span class="browser-status-text"
+                      x-text="paused ? 'Browser agent paused' : (active ? 'Browser agent running...' : 'Browser agent idle')">
+                </span>
+            </div>
+        </div>
+    </div>
+
+    <script>
+    function browserOverlay() {
+        return {
+            expanded: false,
+            active: false,
+            paused: false,
+            screenshotUrl: null,
+            pollInterval: null,
+
+            init() {
+                this.startPolling();
+            },
+
+            toggleExpand() {
+                this.expanded = !this.expanded;
+            },
+
+            async togglePause() {
+                const ctxId = window.currentContext?.id || '';
+                const resp = await fetch('/pause', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ paused: !this.paused, context: ctxId })
+                });
+                if (resp.ok) {
+                    this.paused = !this.paused;
+                }
+            },
+
+            startPolling() {
+                this.pollInterval = setInterval(() => this.fetchStatus(), 2000);
+            },
+
+            async fetchStatus() {
+                try {
+                    const ctxId = window.currentContext?.id || '';
+                    const resp = await fetch('/browser_agent_status', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ context: ctxId })
+                    });
+                    if (resp.ok) {
+                        const data = await resp.json();
+                        this.active = data.active || false;
+                        this.paused = data.paused || false;
+                        if (data.screenshot_url) {
+                            this.screenshotUrl = data.screenshot_url + '&t=' + Date.now();
+                        }
+                    }
+                } catch (e) {
+                    // Silently ignore poll errors
+                }
+            },
+
+            destroy() {
+                if (this.pollInterval) clearInterval(this.pollInterval);
+            }
+        };
+    }
+    </script>
+
+    <style>
+        .browser-overlay {
+            position: fixed;
+            bottom: 0;
+            right: 1em;
+            width: 420px;
+            max-height: 80vh;
+            z-index: 1000;
+            border-radius: 8px 8px 0 0;
+            border: 1px solid rgba(128, 128, 128, 0.2);
+            background: var(--c-bg1, #1e1e1e);
+            box-shadow: 0 -2px 12px rgba(0, 0, 0, 0.3);
+            overflow: hidden;
+            font-family: inherit;
+        }
+
+        .browser-overlay-toggle {
+            display: flex;
+            align-items: center;
+            gap: 0.5em;
+            padding: 0.6em 1em;
+            cursor: pointer;
+            background: var(--c-bg2, #2d2d2d);
+            user-select: none;
+        }
+
+        .browser-overlay-toggle:hover {
+            background: var(--c-bg3, #383838);
+        }
+
+        .browser-overlay-icon {
+            font-size: 1.1em;
+        }
+
+        .browser-overlay-title {
+            font-weight: 600;
+            font-size: 0.9em;
+        }
+
+        .browser-overlay-status {
+            font-size: 0.8em;
+            color: #00c340;
+            display: flex;
+            align-items: center;
+            gap: 0.3em;
+        }
+
+        .pulse-dot {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background: #00c340;
+            animation: pulse 1.5s infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.4; }
+        }
+
+        .browser-overlay-expand {
+            margin-left: auto;
+            font-size: 0.8em;
+            opacity: 0.6;
+        }
+
+        .browser-overlay-content {
+            padding: 0.8em;
+        }
+
+        .browser-screenshot-container {
+            width: 100%;
+            max-height: 300px;
+            overflow: auto;
+            border-radius: 4px;
+            border: 1px solid rgba(128, 128, 128, 0.15);
+            margin-bottom: 0.8em;
+        }
+
+        .browser-screenshot {
+            width: 100%;
+            display: block;
+        }
+
+        .no-screenshot {
+            padding: 2em;
+            text-align: center;
+            color: var(--c-fg2, #888);
+            font-style: italic;
+        }
+
+        .browser-controls {
+            display: flex;
+            align-items: center;
+            gap: 0.8em;
+        }
+
+        .browser-pause-btn {
+            font-size: 0.85em;
+            padding: 0.4em 1em;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+
+        .browser-pause-btn.paused {
+            background: #00c340;
+            color: #fff;
+        }
+
+        .browser-status-text {
+            font-size: 0.8em;
+            color: var(--c-fg2, #888);
+        }
+
+        /* Mobile responsive */
+        @media (max-width: 480px) {
+            .browser-overlay {
+                width: 100%;
+                right: 0;
+            }
+        }
+    </style>
+</body>
+</html>

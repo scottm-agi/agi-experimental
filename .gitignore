@@ -1,0 +1,258 @@
+# ============================================
+# agix .gitignore
+# ============================================
+
+# ============================================
+# Sub-git directories (ignore nested repos)
+# ============================================
+**/.git/
+!/.git/
+
+# ============================================
+# Root-level text files (logs, temp, etc.)
+# ============================================
+/*.txt
+!requirements*.txt
+/*.log
+tests/*.log
+
+# ============================================
+# User Data Directories (Docker mount points)
+# ============================================
+/usr/
+/usr/**
+!usr/projects/.gitkeep
+master/usr/
+master/searxng/
+tmp/
+/chats/
+
+# ============================================
+# agix submodule runtime data
+# ============================================
+agix/logs/
+agix/logs/**
+agix/tmp/
+agix/data/
+
+# ============================================
+# Database files (user state)
+# ============================================
+*.db
+*.db-shm
+*.db-wal
+*.db.bak*
+*.db.malformed*
+*.db.corrupt*
+agent_zero.db
+config.db
+conf/config.db
+
+# ============================================
+# User-generated prompts (golden prompts)
+# ============================================
+prompts/golden_*.md
+
+
+# ============================================
+# Data directory (mount point for persistence)
+# ============================================
+data/
+!data/tenant_defaults.json
+# Note: data/scheduler/tasks.json is intentionally not tracked
+# Task state is user-specific and regenerated
+
+# ============================================
+# Test output directory
+# ============================================
+output/
+output/**
+scripts/test-api/outputs/
+
+# ============================================
+# Environment and secrets
+# ============================================
+.env
+.env.*
+!.env.example
+settings.json
+token.json
+**/token.json
+**/client_secret*.json
+**/credentials.json
+*.pem
+cert.pem
+key.pem
+
+# ============================================
+# Python artifacts
+# ============================================
+**/__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+wheels/
+*.egg-info/
+.installed.cfg
+*.egg
+
+# ============================================
+# Virtual environments
+# ============================================
+.venv/
+venv/
+env/
+venv_*/
+.venv_broken/
+.conda/
+
+# ============================================
+# IDE and editor files
+# ============================================
+.cursor/
+.windsurf/
+.vscode/
+.smart-coding-cache/
+.idea/
+*.swp
+*.swo
+*~
+
+# ============================================
+# OS-specific files
+# ============================================
+.DS_Store
+Thumbs.db
+
+# ============================================
+# Memory directories (agent working memory)
+# ============================================
+memory/**
+!memory/**/
+!memory/.gitkeep
+
+# ============================================
+# Logs directory
+# ============================================
+logs/*
+!logs/.gitkeep
+
+# ============================================
+# Test volumes and artifacts
+# ============================================
+test/**
+!test/**/
+tests/cookies*.txt
+tests/verify_chat_loading_sync.py
+
+# ============================================
+# Knowledge directory (user-specific)
+# ============================================
+knowledge/**
+!knowledge/**/
+!knowledge/default/
+!knowledge/default/**
+!knowledge/.gitkeep
+
+# ============================================
+# Instruments directory
+# ============================================
+instruments/**
+!instruments/**/
+!instruments/default/
+!instruments/default/**
+!instruments/custom/
+!instruments/custom/**
+!instruments/.gitkeep
+
+# ============================================
+# Global rule: preserve .gitkeep files
+# ============================================
+!**/.gitkeep
+
+# ============================================
+# Browser automation artifacts
+# ============================================
+agent_history.gif
+playwright/
+
+# ============================================
+# Garbage/delete directory
+# ============================================
+delete/
+
+# ============================================
+# Specific generated files
+# ============================================
+docker-errors.log
+cookies.txt
+latest_logs.txt
+logs_dump.txt
+trigger_out*.log
+digest.txt
+config.txt
+fields.txt
+
+# ============================================
+# Named log files at root
+# ============================================
+final_audit_logs.txt
+log_audit_final.txt
+logs_audit.txt
+logs_snapshot.txt
+triage_prompt.txt
+triage_system_prompt.txt
+andy_forgejo_loop.log
+brownfield_*.log
+
+# ============================================
+# Node.js and npm artifacts
+# ============================================
+node_modules/
+.npm/
+.npx/
+.yarn/
+yarn.lock
+package-lock.json
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# ============================================
+# Pytest cache
+# ============================================
+.pytest_cache/
+
+# ============================================
+# Test files and directories
+# ============================================
+/*.test.py
+vars-secrets.md
+.agent/
+.mise/
+tests/
+python/tests/
+
+# Gitingest output
+gitingest.txt
+*.gitingest
+gitingest/
+
+# Lightweight Semantic Engine (local dev tool)
+.lightweight_semantic_engine/
+docs/
+CLEANUP_PROGRESS.md
+tests_port80/
+scripts/

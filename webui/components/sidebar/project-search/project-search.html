@@ -1,0 +1,268 @@
+<html>
+
+<head>
+  <script type="module">
+    import { store } from "./project-search-store.js";
+  </script>
+</head>
+
+<body>
+  <div x-data>
+    <template x-if="$store.projectSearch">
+      <div class="project-search-container" @click.away="$store.projectSearch.closeDropdown()">
+        <!-- Search Input / Selected Display -->
+        <div class="project-search-input-wrapper" @click="$store.projectSearch.toggleDropdown()">
+          <span class="project-color-indicator"
+            :style="$store.projectSearch.getSelectedColor() ? { backgroundColor: $store.projectSearch.getSelectedColor() } : { border: '1px solid var(--color-border)' }">
+          </span>
+          <span class="project-search-selected-text" x-text="$store.projectSearch.getSelectedDisplayName()"></span>
+          <span class="icon material-symbols-outlined project-search-chevron"
+            :class="{ 'rotated': $store.projectSearch.isDropdownOpen }">
+            expand_more
+          </span>
+        </div>
+
+        <!-- Dropdown -->
+        <div class="project-search-dropdown" x-show="$store.projectSearch.isDropdownOpen" x-transition
+          style="display: none;">
+          <!-- Search Input -->
+          <div class="project-search-filter-wrapper">
+            <span class="icon material-symbols-outlined project-search-icon">search</span>
+            <input type="text" class="project-search-filter-input" placeholder="Search projects..."
+              x-model="$store.projectSearch.searchQuery" @click.stop
+              @keydown.escape="$store.projectSearch.closeDropdown()">
+          </div>
+
+          <!-- Divider -->
+          <hr class="project-search-divider">
+
+          <!-- All Projects Option -->
+          <div class="project-search-item" :class="{ 'selected': $store.projectSearch.selectedProjectFilter === null }"
+            @click="$store.projectSearch.selectProject(null)">
+            <span class="project-color-indicator" style="border: 1px solid var(--color-border);"></span>
+            <span class="project-search-item-text">All Projects</span>
+            <span class="icon material-symbols-outlined project-search-check"
+              x-show="$store.projectSearch.selectedProjectFilter === null">check</span>
+          </div>
+
+          <!-- Divider if projects exist -->
+          <hr class="project-search-divider" x-show="$store.projectSearch.getFilteredProjects().length > 0">
+
+          <!-- Projects List -->
+          <div class="project-search-list">
+            <template x-for="project in $store.projectSearch.getFilteredProjects()" :key="project.name">
+              <div class="project-search-item"
+                :class="{ 'selected': $store.projectSearch.selectedProjectFilter === project.name }"
+                @click="$store.projectSearch.selectProject(project.name)">
+                <span class="project-color-indicator"
+                  :style="project.color ? { backgroundColor: project.color } : { border: '1px solid var(--color-border)' }">
+                </span>
+                <span class="project-search-item-text" x-text="project.title || project.name"></span>
+                <span class="icon material-symbols-outlined project-search-check"
+                  x-show="$store.projectSearch.selectedProjectFilter === project.name">check</span>
+              </div>
+            </template>
+          </div>
+
+          <!-- Empty State -->
+          <div class="project-search-empty"
+            x-show="$store.projectSearch.getFilteredProjects().length === 0 && $store.projectSearch.searchQuery">
+            <span class="project-search-empty-text">No projects found</span>
+          </div>
+
+          <!-- No Projects State -->
+          <div class="project-search-empty"
+            x-show="$store.projectSearch.projectList.length === 0 && !$store.projectSearch.searchQuery">
+            <span class="project-search-empty-text">No projects created yet</span>
+          </div>
+
+          <!-- Divider before Create New Project -->
+          <hr class="project-search-divider">
+
+          <!-- Create New Project Option -->
+          <div class="project-search-item project-search-create-new"
+            @click="$store.projectSearch.openCreateProjectModal()">
+            <span class="icon material-symbols-outlined project-search-add-icon">add_circle</span>
+            <span class="project-search-item-text">Create New Project</span>
+          </div>
+        </div>
+      </div>
+    </template>
+  </div>
+
+  <style>
+    .project-search-container {
+      position: relative;
+      margin-bottom: var(--spacing-sm);
+    }
+
+    .project-search-input-wrapper {
+      display: flex;
+      align-items: center;
+      gap: 0.5em;
+      padding: 0.5em 0.75em;
+      background-color: var(--color-background);
+      border: 1px solid var(--color-border);
+      border-radius: 6px;
+      cursor: pointer;
+      transition: all var(--transition-speed) ease-in-out;
+    }
+
+    .project-search-input-wrapper:hover {
+      border-color: var(--color-primary);
+      background-color: var(--color-background-hover);
+    }
+
+    .project-color-indicator {
+      width: 0.7em;
+      height: 0.7em;
+      border-radius: 50%;
+      flex-shrink: 0;
+      box-sizing: border-box;
+    }
+
+    .project-search-selected-text {
+      flex: 1;
+      font-size: var(--font-size-small);
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .project-search-chevron {
+      font-size: 1.2em;
+      transition: transform var(--transition-speed) ease-in-out;
+      color: var(--color-muted-foreground);
+      line-height: 1;
+    }
+
+    .project-search-chevron.rotated {
+      transform: rotate(180deg);
+    }
+
+    .project-search-dropdown {
+      position: absolute;
+      top: calc(100% + 4px);
+      left: 0;
+      right: 0;
+      z-index: 1000;
+      background-color: var(--color-panel);
+      border: 1px solid var(--color-border);
+      border-radius: 6px;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+      max-height: 300px;
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
+    }
+
+    .project-search-filter-wrapper {
+      display: flex;
+      align-items: center;
+      gap: 0.5em;
+      padding: 0.5em 0.75em;
+      background-color: var(--color-background);
+      margin: 0.5em;
+      border-radius: 4px;
+    }
+
+    .project-search-icon {
+      font-size: 1em;
+      color: var(--color-muted-foreground);
+      line-height: 1;
+    }
+
+    .project-search-filter-input {
+      flex: 1;
+      background: transparent;
+      border: none;
+      outline: none;
+      color: var(--color-text);
+      font-size: var(--font-size-small);
+    }
+
+    .project-search-filter-input::placeholder {
+      color: var(--color-muted-foreground);
+      opacity: 0.7;
+    }
+
+    .project-search-divider {
+      height: 1px;
+      margin: 0.25em 0.5em;
+      background-color: var(--color-border);
+      border: 0;
+    }
+
+    .project-search-list {
+      overflow-y: auto;
+      max-height: 200px;
+      scrollbar-width: thin;
+    }
+
+    .project-search-item {
+      display: flex;
+      align-items: center;
+      gap: 0.5em;
+      padding: 0.5em 0.75em;
+      cursor: pointer;
+      transition: background-color var(--transition-speed) ease-in-out;
+    }
+
+    .project-search-item:hover {
+      background-color: var(--color-background-hover);
+    }
+
+    .project-search-item.selected {
+      background-color: var(--color-background-hover);
+    }
+
+    .project-search-item-text {
+      flex: 1;
+      font-size: var(--font-size-small);
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .project-search-check {
+      font-size: 1em;
+      color: var(--color-primary);
+      line-height: 1;
+    }
+
+    .project-search-empty {
+      padding: 1em;
+      text-align: center;
+    }
+
+    .project-search-empty-text {
+      font-size: var(--font-size-small);
+      color: var(--color-muted-foreground);
+      font-style: italic;
+    }
+
+    /* Create New Project option styles */
+    .project-search-create-new {
+      border-top: 1px solid var(--color-border);
+      margin-top: 0.25em;
+      padding-top: 0.5em;
+    }
+
+    .project-search-create-new:hover {
+      background-color: var(--color-background-hover);
+    }
+
+    .project-search-add-icon {
+      font-size: 1.1em;
+      color: var(--color-primary);
+      line-height: 1;
+    }
+
+    .project-search-create-new .project-search-item-text {
+      color: var(--color-primary);
+      font-weight: 500;
+    }
+  </style>
+</body>
+
+</html>

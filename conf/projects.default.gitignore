@@ -1,0 +1,14 @@
+# AGIX project meta folder
+.agix.proj/
+.agix.proj/  # Legacy project meta folder fallback
+ 
+# Python environments & cache
+venv/
+**/__pycache__/
+
+# Node.js dependencies
+**/node_modules/
+**/.npm/
+
+# Version control metadata
+**/.git/

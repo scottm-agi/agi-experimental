@@ -1,0 +1,133 @@
+version: '3.8'
+
+# Docker Compose for AGIX TEST Environment
+# 
+# Parallel-safe configuration that can run alongside dev and master.
+# 
+# Port Allocation (TEST):
+#   - UI HTTP: 8881
+#   - SSH (RFC): 8823
+#   - Redis: 6380
+#   - Backend: 5200-5299
+#   - DB Proxies: 15500-15599
+#   - Dev Servers: 9010-9019
+#
+# Usage:
+#   docker-compose -f docker-compose.test.yml up -d
+
+services:
+  agix-test:
+    container_name: agix-test
+    image: agi-experimental/agi-experimental:latest
+    
+    volumes:
+      # Mount local repo to /agix for live code updates
+      - .:/agix
+      # Mount startup scripts for live updates
+      - ./docker/run/fs/exe:/exe
+      - ./docker/run/fs/ins:/ins
+      # Mount supervisor config to override baked-in upstream config (which references run_A0.sh)
+      - ./docker/run/fs/etc/supervisor/conf.d/supervisord.conf:/etc/supervisor/conf.d/supervisord.conf
+      # Isolate stateful directories to test subfolder
+      - ./test/tmp:/agix/tmp
+      - ./test/usr:/agix/usr
+      - ./test/data:/agix/data
+      - ./test/memory:/agix/memory
+      - ./test/knowledge:/agix/knowledge
+      # Mount SearXNG configuration
+      - ./docker/run/fs/etc/searxng:/etc/searxng
+      # Mount user's code directory
+      #- /Users/your-username/Documents/code:/code:ro
+      # Seed data from host for automatic synchronization
+      - ./memory:/seed/memory:ro
+      - ./usr/projects:/seed/projects:ro
+    
+    ports:
+      # SSH for RFC communication
+      - "8823:22"
+      # Web UI HTTP
+      - "8881:80"
+      # Backend services (Flask, Python HTTP servers)
+      - "5200-5299:5100-5199"
+      # Database proxies (shifted host range)
+      - "15500-15599:5400-5499"
+      # Additional ports for development servers
+      - "9010-9019:9000-9009"
+    
+    environment:
+      # Test mode
+      - AGIX_DEV_MODE=true
+      - AGIX_ENV=test
+      # Enable LLM Supervisor for agent monitoring
+      - SUPERVISOR_ENABLED=true
+      - LLM_SUPERVISOR_ENABLED=true
+      - GIT_CEILING_DIRECTORIES=/agix
+      # RFC password
+      - RFC_PASSWORD=${RFC_PASSWORD:-test-password}
+      # Disable login by default in development mode
+      - AUTH_LOGIN=
+      - AUTH_PASSWORD=
+      # Allow local curl / browser origin for CSRF token + message_async
+      - ALLOWED_ORIGINS=http://localhost:8881,https://localhost:8881,http://127.0.0.1:8881,https://127.0.0.1:8881,http://127.0.0.1:80
+      - FLASK_SECRET_KEY=test-secret-key-fixed
+      - REDIS_HOST=redis-test
+      - LOGS_DATABASE_URL=postgresql+asyncpg://postgres:postgres@postgres-test:5432/agix
+      # Thread exhaustion fix (Forgejo #762): cap asgiref thread pool
+      - ASGI_THREADS=10
+      - THREAD_WARN_THRESHOLD=500
+    
+    env_file:
+      - .env
+    
+    # Health check to ensure standard and webhook ports are up
+    healthcheck:
+      test: ["CMD-SHELL", "curl -f http://localhost:80/webhook/health || exit 1"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+
+    # Keep container running
+    restart: unless-stopped
+    
+    # Resource limits
+    deploy:
+      resources:
+        limits:
+          memory: 4G
+        reservations:
+          memory: 1G
+    depends_on:
+      - redis-test
+      - postgres-test
+
+  redis-test:
+    image: redis:7-alpine
+    container_name: agix-redis-test
+    ports:
+      - "6380:6379"
+    restart: unless-stopped
+
+  postgres-test:
+    image: postgres:17-alpine
+    container_name: agix-postgres-test
+    ports:
+      - "5430:5432"
+    environment:
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=postgres
+      - POSTGRES_DB=agix
+    volumes:
+      - ./test/postgres:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    restart: unless-stopped
+
+volumes:
+  agix-memory-test:
+  agix-knowledge-test:
+  agix-projects-test:
+  agix-secrets-test:

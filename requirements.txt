@@ -1,0 +1,110 @@
+# DO NOT pin numpy or scipy here — the base image (agi-experimental/agi-experimental-base)
+# ships numpy 2.x + scipy compiled against numpy 2.x. Pinning to 1.x here causes
+# a boot-time ABI mismatch (scipy C extensions crash with RecursionError in _dtype.py).
+# If you need a specific version, update the Dockerfile build instead.
+
+a2wsgi==1.10.10
+ansio==0.0.1
+attrs>=23.1.0
+browser-use>=0.11.3
+docker==7.1.0
+duckduckgo-search==8.1.1
+ddgs>=9.11.0
+faiss-cpu==1.11.0
+fastmcp==2.14.3
+fasta2a==0.5.0
+flask[async]==3.0.3
+flask-basicauth==0.2.0
+flaredantic==0.1.4
+GitPython==3.1.43
+inputimeout==1.0.4
+kokoro>=0.9.2
+simpleeval==1.0.3
+langchain-core==0.3.50
+langchain-community==0.3.19
+# langchain-unstructured==0.1.6 — REMOVED: onnxruntime<=1.19.2 has no cp313 wheels, installed with --no-deps in install_agix.sh
+# openai-whisper==20250625 — REMOVED: requires setuptools<81 at build time, handled in docker/run/fs/ins/install_agix.sh
+lxml_html_clean==0.3.1
+markdown==3.7
+mcp==1.25.0
+newspaper3k==0.2.8
+paramiko==3.5.0
+playwright==1.52.0
+pypdf==6.0.0
+python-dotenv==1.1.0
+pytz==2024.2
+sentence-transformers==3.0.1
+tokenizers>=0.22.0,<0.23.1  # CRITICAL: transformers requires <=0.23.0, pip pulls 0.23.1+ without pin
+transformers>=4.52.0,<5.0  # 4.52+ requires tokenizers>=0.22
+tiktoken==0.8.0
+unstructured[all-docs]==0.16.23
+unstructured-client==0.31.0
+webcolors==24.6.0
+nest-asyncio==1.6.0
+crontab==1.0.1
+rich>=13.0.0
+markdownify>=1.2.0
+pydantic>=2.0.0,<2.12.0
+pymupdf==1.25.3
+pytesseract==0.3.13
+pdf2image==1.17.0
+pathspec>=0.12.1
+psutil>=7.0.0
+soundfile==0.13.1
+imapclient>=3.0.1
+html2text>=2024.2.26
+beautifulsoup4>=4.12.3
+exchangelib>=5.4.3
+accelerate>=0.26.0
+# Removed duplicate crawl4ai from here
+
+
+# =============================================================================
+# Parallel Swarm Dependencies
+# =============================================================================
+# Redis - Message queue and distributed state
+redis>=5.0.0
+aioredis>=2.0.0
+
+# Milvus - Vector database for shared memory
+pymilvus>=2.3.0
+
+# Prometheus - Metrics collection
+prometheus-client>=0.19.0
+
+# OpenTelemetry - Distributed tracing
+opentelemetry-api>=1.21.0
+opentelemetry-sdk>=1.21.0
+opentelemetry-exporter-jaeger>=1.21.0
+
+# Async utilities
+aiohttp>=3.9.0
+aiocache>=0.12.0
+litellm>=1.80.0,<=1.82.6  # SECURITY: versions 1.82.7-1.82.8 compromised by TeamPCP supply chain attack (2026-03-24)
+openai>=2.15.0
+huggingface-hub>=0.34.0,<1.0
+
+# SQL Persistence
+SQLAlchemy>=2.0.0
+psycopg2-binary>=2.9.0
+aiosqlite>=0.19.0
+asyncpg>=0.29.0
+ruff
+crawl4ai
+google-api-python-client
+google-auth-oauthlib
+google-auth-httplib2
+google-genai>=1.62.0
+cryptography
+pydantic-settings
+patchright
+gitingest
+requests
+urllib3>=2.0.0,<3.0.0  # Forgejo #906: pin to suppress RequestsDependencyWarning
+charset-normalizer>=3.0.0,<4.0.0  # Forgejo #906: pin to suppress RequestsDependencyWarning
+regex
+pytest
+pytest-asyncio
+httpx>=0.25.0
+redis
+setuptools

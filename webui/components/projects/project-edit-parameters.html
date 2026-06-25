@@ -1,0 +1,81 @@
+<html>
+
+<head>
+    <title>Project Parameters</title>
+    <script type="module">
+        import { store } from "./projects-store.js";
+    </script>
+</head>
+
+<body>
+    <div x-data>
+        <template x-if="$store.projects && $store.projects.selectedProject">
+            <div>
+                <div class="projects-form-group">
+                    <span class="projects-form-description">
+                        Store project configuration as key-value pairs (JSON format).
+                        Use <strong>UPPER_SNAKE_CASE</strong> keys, e.g. <code>MAX_RETRIES</code>,
+                        <code>FORGEJO_URL</code>.
+                        For project prefixes: <code>BITDRAMA-GITHUB-REPO</code>.
+                        <br><em>💡 Tip: Let agents set parameters via the <code>parameter_set</code> tool for automatic
+                            validation and deduplication.</em>
+                    </span>
+                </div>
+                <div class="kvp-editor"
+                    x-data="kvpEditor({ field: { get value() { return $store.projects.selectedProject.parameters }, set value(v) { $store.projects.selectedProject.parameters = v } }, format: 'json', isSecret: false })">
+                    <div class="kvp-header">
+                        <div class="kvp-view-toggle">
+                            <button class="kvp-view-btn" :class="{'active': view === 'list'}"
+                                @click="view = 'list'">List</button>
+                            <button class="kvp-view-btn" :class="{'active': view === 'raw'}"
+                                @click="view = 'raw'">Raw</button>
+                        </div>
+                    </div>
+
+                    <!-- List View -->
+                    <div x-show="view === 'list'" class="kvp-list">
+                        <template x-for="(item, index) in items" :key="index">
+                            <div class="kvp-row">
+                                <div class="kvp-key">
+                                    <input type="text" x-model="item.key" placeholder="MAX_RETRIES"
+                                        @input="onItemChange()">
+                                </div>
+                                <div class="kvp-value-wrapper">
+                                    <input
+                                        :type="(isSecret || isSensitiveKey(item.key)) && !showSecrets[index] ? 'password' : 'text'"
+                                        x-model="item.value" placeholder="3" @input="onItemChange()">
+                                    <template x-if="isSecret || isSensitiveKey(item.key)">
+                                        <button type="button" class="kvp-btn-show-password"
+                                            @click="toggleSecretVisibility(index)">
+                                            <span class="material-symbols-outlined"
+                                                x-text="showSecrets[index] ? 'visibility_off' : 'visibility'"></span>
+                                        </button>
+                                    </template>
+                                </div>
+                                <button type="button" class="kvp-btn-remove" @click="removeItem(index)">
+                                    <span class="material-symbols-outlined">delete</span>
+                                </button>
+                            </div>
+                        </template>
+                        <template x-if="items.length === 0">
+                            <div class="kvp-empty-message">No parameters yet. Use UPPER_SNAKE_CASE keys (e.g.
+                                MAX_RETRIES, FORGEJO_URL).
+                            </div>
+                        </template>
+                        <button type="button" class="btn btn-secondary kvp-btn-add" @click="addItem()">
+                            <span class="material-symbols-outlined">add</span> Add Parameter
+                        </button>
+                    </div>
+
+                    <!-- Raw View -->
+                    <div x-show="view === 'raw'" class="kvp-raw-view">
+                        <textarea class="projects-form-textarea" x-model="$store.projects.selectedProject.parameters"
+                            rows="15" placeholder='{ "key": "value" }' @input="parseRaw()"></textarea>
+                    </div>
+                </div>
+            </div>
+        </template>
+    </div>
+</body>
+
+</html>

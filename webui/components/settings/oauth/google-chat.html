@@ -1,0 +1,209 @@
+<div class="modal-content-container" x-data="googleChatSetup()" x-init="init()">
+    <div class="modal-header">
+        <div class="modal-title">
+            <img src="public/oauth.svg" class="modal-icon" alt="Google Chat">
+            <span>Google Chat Setup</span>
+        </div>
+        <button class="close-btn" @click="closeModal()">&times;</button>
+    </div>
+
+    <div class="modal-body custom-scrollbar">
+        <div class="setup-guide">
+            <p class="guide-intro">To enable Google Chat, you need to provide your OAuth 2.0 Client credentials from
+                Google Cloud Console.</p>
+
+            <div class="guide-steps">
+                <div class="step">
+                    <span class="step-number">1</span>
+                    <div class="step-content">
+                        <strong>Go to Google Cloud Console</strong>
+                        <p>Visit the <a href="https://console.cloud.google.com/apis/credentials" target="_blank"
+                                class="external-link">Credentials page</a>. Select your project (or create a new one).
+                        </p>
+                    </div>
+                </div>
+
+                <div class="step">
+                    <span class="step-number">2</span>
+                    <div class="step-content">
+                        <strong>Enable Google Chat API</strong>
+                        <p>Make sure the "Google Chat API" is enabled in the <a
+                                href="https://console.cloud.google.com/apis/library/chat.googleapis.com" target="_blank"
+                                class="external-link">API Library</a>.</p>
+                    </div>
+                </div>
+
+                <div class="step">
+                    <span class="step-number">3</span>
+                    <div class="step-content">
+                        <strong>Create OAuth Client ID</strong>
+                        <p>Click "Create Credentials" > "OAuth client ID". Choose <strong>Desktop App</strong> as the
+                            application type.</p>
+                    </div>
+                </div>
+
+                <div class="step">
+                    <span class="step-number">4</span>
+                    <div class="step-content">
+                        <strong>Paste JSON below</strong>
+                        <p>Download the JSON file or copy the content and paste it into the field below.</p>
+                    </div>
+                </div>
+            </div>
+
+            <div class="config-input-area">
+                <label for="google_chat_json" class="input-label">Client Configuration (JSON)</label>
+                <textarea id="google_chat_json" x-model="configJson"
+                    placeholder='{ "installed": { "client_id": "...", ... } }' class="code-textarea"
+                    spellcheck="false"></textarea>
+            </div>
+        </div>
+    </div>
+
+    <div class="modal-footer">
+        <button class="secondary-btn" @click="closeModal()">Cancel</button>
+        <button class="primary-btn" @click="saveAndConnect()" :disabled="!isValidJson()"
+            :class="{ 'loading': isSaving }">
+            <span x-show="!isSaving">Save & Connect</span>
+            <span x-show="isSaving">Connecting...</span>
+        </button>
+    </div>
+
+    <style>
+        .setup-guide {
+            padding: 1rem;
+            color: var(--text-color);
+        }
+
+        .guide-intro {
+            margin-bottom: 1.5rem;
+            opacity: 0.8;
+            line-height: 1.5;
+        }
+
+        .guide-steps {
+            display: flex;
+            flex-direction: column;
+            gap: 1.25rem;
+            margin-bottom: 2rem;
+        }
+
+        .step {
+            display: flex;
+            gap: 1rem;
+            align-items: flex-start;
+        }
+
+        .step-number {
+            background: var(--accent-color);
+            color: white;
+            width: 24px;
+            height: 24px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 0.8rem;
+            font-weight: bold;
+            flex-shrink: 0;
+            margin-top: 2px;
+        }
+
+        .step-content strong {
+            display: block;
+            margin-bottom: 0.25rem;
+            font-size: 0.95rem;
+        }
+
+        .step-content p {
+            margin: 0;
+            font-size: 0.85rem;
+            opacity: 0.7;
+            line-height: 1.4;
+        }
+
+        .external-link {
+            color: var(--accent-color);
+            text-decoration: underline;
+        }
+
+        .config-input-area {
+            margin-top: 2rem;
+        }
+
+        .input-label {
+            display: block;
+            margin-bottom: 0.5rem;
+            font-size: 0.85rem;
+            font-weight: 500;
+        }
+
+        .code-textarea {
+            width: 100%;
+            height: 150px;
+            background: rgba(0, 0, 0, 0.2);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 8px;
+            padding: 1rem;
+            color: #ddd;
+            font-family: 'Fira Code', 'Courier New', monospace;
+            font-size: 0.8rem;
+            resize: vertical;
+        }
+
+        .code-textarea:focus {
+            outline: none;
+            border-color: var(--accent-color);
+            background: rgba(0, 0, 0, 0.3);
+        }
+
+        .primary-btn.loading {
+            opacity: 0.7;
+            pointer-events: none;
+        }
+    </style>
+
+    <script>
+        function googleChatSetup() {
+            return {
+                configJson: '',
+                isSaving: false,
+                init() {
+                    console.log('Google Chat Setup Modal Initialized');
+                },
+                isValidJson() {
+                    if (!this.configJson.trim()) return false;
+                    try {
+                        const parsed = JSON.parse(this.configJson);
+                        return parsed.installed || parsed.web;
+                    } catch (e) {
+                        return false;
+                    }
+                },
+                async saveAndConnect() {
+                    if (!this.isValidJson()) return;
+                    this.isSaving = true;
+                    try {
+                        const resp = await callJsonApi("/google_chat_auth", {
+                            action: "initiate",
+                            config_json: this.configJson
+                        });
+                        if (resp.auth_url) {
+                            window.location.href = resp.auth_url;
+                        } else {
+                            showToast("Error starting OAuth: " + (resp.message || "Unknown error"), "error");
+                        }
+                    } catch (e) {
+                        showToast("Failed to save credentials: " + e, "error");
+                    } finally {
+                        this.isSaving = false;
+                    }
+                },
+                closeModal() {
+                    // This assumes openModal uses a mechanism that can be closed via a generic handler or custom event
+                    document.dispatchEvent(new CustomEvent('close-current-modal'));
+                }
+            }
+        }
+    </script>
+</div>

@@ -1,0 +1,9 @@
+[tools]
+python = "3.11"
+ruff = "latest"
+ast-grep = "latest"
+ripgrep = "latest"
+jq = "latest"
+fd = "latest"
+bat = "latest"
+  node = "20"

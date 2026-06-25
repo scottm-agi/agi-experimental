@@ -1,0 +1,71 @@
+<html>
+
+<head>
+    <title>Microhone settings</title>
+
+    <!-- Import the alpine store -->
+    <script type="module">
+        import { store } from "./microphone-setting-store.js";
+        console.log("microphone-setting-store.js loaded");
+    </script>
+</head>
+
+<body>
+
+    <!-- This construct of x-data + x-if is used to ensure the component is only rendered when the store is available -->
+    <div x-data>
+        <template x-if="$store.microphoneSetting">
+
+            <div>
+                <div class="searchable-select" @click.away="$store.microphoneSetting.dropdownOpen = false"
+                    x-show="$store.microphoneSetting.devices.length > 0">
+                    <div class="searchable-select-input"
+                        @click="$store.microphoneSetting.dropdownOpen = !$store.microphoneSetting.dropdownOpen"
+                        :class="{'active': $store.microphoneSetting.dropdownOpen}">
+                        <div class="searchable-select-value">
+                            <span
+                                x-text="$store.microphoneSetting.getSelectedDevice()?.label || 'Select Microphone'"></span>
+                        </div>
+                        <svg class="searchable-select-chevron" viewBox="0 0 20 20" fill="currentColor">
+                            <path fill-rule="evenodd"
+                                d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z"
+                                clip-rule="evenodd" />
+                        </svg>
+                    </div>
+                    <div class="searchable-select-dropdown" x-show="$store.microphoneSetting.dropdownOpen" x-cloak>
+                        <div class="searchable-select-search">
+                            <input type="text" placeholder="Search microphones..."
+                                x-model="$store.microphoneSetting.searchQuery" @click.stop>
+                        </div>
+                        <div class="searchable-select-options">
+                            <template
+                                x-for="(device, index) in $store.microphoneSetting.devices.filter(d => !$store.microphoneSetting.searchQuery || d.label.toLowerCase().includes($store.microphoneSetting.searchQuery.toLowerCase()))"
+                                :key="device.deviceId">
+                                <div class="searchable-select-option"
+                                    :class="{'selected': $store.microphoneSetting.selectedDevice === device.deviceId}"
+                                    @click="$store.microphoneSetting.selectDevice(device.deviceId); $store.microphoneSetting.searchQuery = ''; $store.microphoneSetting.dropdownOpen = false;">
+                                    <span x-text="device.label || 'Microphone ' + (index + 1)"></span>
+                                </div>
+                            </template>
+                        </div>
+                    </div>
+                </div>
+                <button class="btn btn-field"
+                    x-show="$store.microphoneSetting.devices.length == 0 && !$store.microphoneSetting.requestingPermission"
+                    @click="$store.microphoneSetting.requestPermission()">Request permission to select device</button>
+                <button class="btn btn-field" x-show="$store.microphoneSetting.requestingPermission"
+                    @click="$store.microphoneSetting.requestPermission()">
+                    <span>Waiting for devices... [retry]</span>
+                </button>
+            </div>
+
+        </template>
+    </div>
+
+    <!-- Optional style for the component -->
+    <style>
+    </style>
+
+</body>
+
+</html>

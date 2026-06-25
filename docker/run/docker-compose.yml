@@ -1,0 +1,62 @@
+services:
+  agix:
+    container_name: agix-dev
+    build:
+      context: ../../
+      dockerfile: docker/run/Dockerfile
+      args:
+        BRANCH: local
+    volumes:
+      - ../../:/agix
+      - ./fs/exe:/exe
+      - ./fs/ins:/ins
+      - ../../data:/var/agix
+    environment:
+      - DATABASE_URL=sqlite+aiosqlite:///tmp/agix.db
+      - LOGS_DATABASE_URL=postgresql+asyncpg://postgres:postgres@agix-postgres:5432/agix
+      - REDIS_URL=redis://agix-redis:6379/0
+      - GIT_CEILING_DIRECTORIES=/agix
+    ports:
+      - "50080:80"
+      - "8880:8880"
+    depends_on:
+      - agix-redis
+      - agix-postgres
+    restart: unless-stopped
+
+  agix-redis:
+    image: redis:7-alpine
+    container_name: agi-experimental-redis
+    # RCA Phase 2 (P2-1): Scaled for 50-agent parallel swarms.
+    # io-threads=4 handles connection multiplexing on multi-core hosts.
+    # maxmemory=1gb with LRU prevents unbounded memory growth.
+    # save ""/appendonly no disables persistence — Redis is cache/queue only;
+    # all durable state lives in PostgreSQL.
+    command: >
+      redis-server
+      --maxmemory 1gb
+      --maxmemory-policy allkeys-lru
+      --io-threads 4
+      --io-threads-do-reads yes
+      --tcp-backlog 511
+      --save ""
+      --appendonly no
+    ports:
+      - "6379:6379"
+    restart: unless-stopped
+
+  agix-postgres:
+    image: postgres:17-alpine
+    container_name: agix-postgres
+    environment:
+      - POSTGRES_DB=agix
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=postgres
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    restart: unless-stopped
+
+volumes:
+  postgres_data:

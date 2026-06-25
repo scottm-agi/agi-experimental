@@ -1,0 +1,60 @@
+.settings-scroll-buttons-container {
+    position: absolute;
+    right: 1.5rem;
+    bottom: 5rem;
+    /* Positioned above the modal footer if there is one, or just near bottom */
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+    z-index: 1000;
+    /* High z-index to stay above modal content */
+    pointer-events: none;
+}
+
+.settings-scroll-button {
+    pointer-events: auto;
+    width: 2.5rem;
+    height: 2.5rem;
+    border-radius: 50%;
+    background-color: var(--color-muted);
+    border: 1px solid var(--color-border);
+    color: var(--color-text);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    box-shadow: var(--shadow-md);
+    transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+    opacity: 0.6;
+    backdrop-filter: blur(4px);
+}
+
+.settings-scroll-button:hover {
+    opacity: 1;
+    transform: scale(1.1);
+    background-color: var(--color-background);
+    box-shadow: var(--shadow-lg);
+}
+
+.settings-scroll-button:active {
+    transform: scale(0.95);
+}
+
+.settings-scroll-button .material-symbols-outlined {
+    font-size: 1.5rem;
+}
+
+/* On mobile, make them slightly larger for better touch target */
+@media (max-width: 768px) {
+    .settings-scroll-buttons-container {
+        right: 1rem;
+        bottom: 6rem;
+    }
+
+    .settings-scroll-button {
+        width: 3rem;
+        height: 3rem;
+        opacity: 0.8;
+        /* More visible on mobile */
+    }
+}

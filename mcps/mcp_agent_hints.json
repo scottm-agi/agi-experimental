@@ -1,0 +1,36 @@
+{
+  "_comment": "Maps MCP server prefixes to recommended agent profiles for task routing. Used by _15_task_decomposer.py to inject routing hints.",
+  "google-chat": {
+    "hint_agent": "researcher",
+    "hint_reason": "Google Chat API requires crawling with many API calls. Break by space — one researcher per space.",
+    "hint_parallel": true,
+    "hint_decompose_by": "space",
+    "hint_keywords": ["chat", "spaces", "messages", "google chat"]
+  },
+  "forgejo": {
+    "hint_agent": "researcher",
+    "hint_reason": "Forgejo operations involve scanning many issues, repos, or PRs. Break by repository.",
+    "hint_parallel": true,
+    "hint_decompose_by": "repository",
+    "hint_keywords": ["issues", "repos", "pull requests", "forgejo"]
+  },
+  "github-mcp-server": {
+    "hint_agent": "researcher",
+    "hint_reason": "GitHub operations may involve scanning repos, issues, PRs, or code search across large codebases.",
+    "hint_parallel": true,
+    "hint_decompose_by": "repository",
+    "hint_keywords": ["github", "repos"]
+  },
+  "perplexity-ask": {
+    "hint_agent": "researcher",
+    "hint_reason": "Perplexity search is best used by researcher agents who can iteratively refine queries.",
+    "hint_parallel": false,
+    "hint_keywords": ["research", "perplexity"]
+  },
+  "tavily-mcp": {
+    "hint_agent": "researcher",
+    "hint_reason": "Tavily search/crawl/extract is designed for research workflows.",
+    "hint_parallel": true,
+    "hint_keywords": ["crawl", "extract", "tavily"]
+  }
+}

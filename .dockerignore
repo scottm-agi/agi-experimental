@@ -1,0 +1,179 @@
+###############################################################################
+# .dockerignore — AGIX Container Build Context Exclusions
+# ============================================================================
+# CRITICAL: This file MUST exclude ALL user state, secrets, and local
+# development artifacts. Any user-state path in .gitignore MUST also appear
+# here. Failure to do so leaks developer data into customer tenant images.
+#
+# Last audited: 2026-04-17 — golden prompt leak incident
+###############################################################################
+
+
+###############################################################################
+# ── USER STATE & DATA (CRITICAL — NEVER SHIP THESE) ──
+###############################################################################
+
+# User data directory (databases, settings, passwords, scheduler state)
+data/
+
+# User-generated golden prompts
+prompts/golden_*.md
+
+# Chat history
+chats/
+
+# Database files (SQLite user state)
+*.db
+*.db-shm
+*.db-wal
+*.db.bak*
+*.db.malformed*
+*.db.corrupt*
+
+# User settings
+settings.json
+
+# Authentication tokens and credentials
+token.json
+**/token.json
+**/client_secret*.json
+**/credentials.json
+
+# User projects directory (Docker mount point)
+usr/
+
+# Test output
+output/
+scripts/test-api/outputs/
+
+# Garbage directory
+delete/
+
+
+###############################################################################
+# ── ENVIRONMENT & SECRETS (CRITICAL — NEVER SHIP THESE) ──
+###############################################################################
+
+# Environment files (API keys, passwords, etc.)
+.env
+.env.*
+!.env.example
+
+
+###############################################################################
+# ── MEMORY, KNOWLEDGE, INSTRUMENTS (user-specific) ──
+###############################################################################
+
+# Memory directories (agent working memory)
+memory/**
+
+# Knowledge directory — keep only default/
+knowledge/**
+!knowledge/default/
+!knowledge/default/**
+
+# Instruments directory — keep only default/
+instruments/**
+!instruments/default/
+!instruments/default/**
+!instruments/custom/
+!instruments/custom/**
+
+# Keep .gitkeep markers
+!**/.gitkeep
+
+
+###############################################################################
+# ── LOGS & TEMPORARY FILES ──
+###############################################################################
+
+logs/*
+tmp/
+*.log
+
+# Named log files
+docker-errors.log
+cookies.txt
+latest_logs.txt
+logs_dump.txt
+trigger_out*.log
+digest.txt
+config.txt
+fields.txt
+final_audit_logs.txt
+log_audit_final.txt
+logs_audit.txt
+logs_snapshot.txt
+triage_prompt.txt
+triage_system_prompt.txt
+andy_forgejo_loop.log
+brownfield_*.log
+
+
+###############################################################################
+# ── DEVELOPMENT TOOLING ──
+###############################################################################
+
+# Virtual environments
+.conda/
+.venv/
+venv/
+env/
+
+# IDE / editor files
+.cursor/
+.windsurf/
+.vscode/
+.smart-coding-cache/
+.idea/
+
+# VCS
+.git/
+
+# Node.js
+node_modules/
+.npm/
+.npx/
+.yarn/
+package-lock.json
+yarn.lock
+
+# Gemini / AI agent state
+.agent/
+.mise/
+.gemini/
+
+
+###############################################################################
+# ── TESTS (root-level only) ──
+###############################################################################
+
+/*.test.py
+tests/cookies*.txt
+test/**
+
+
+###############################################################################
+# ── BROWSER AUTOMATION ──
+###############################################################################
+
+agent_history.gif
+playwright/
+
+
+###############################################################################
+# ── UNIVERSAL JUNK / CACHES (MUST BE LAST) ──
+###############################################################################
+
+# OS / editor junk
+**/.DS_Store
+**/Thumbs.db
+
+# Python caches / compiled artefacts
+**/__pycache__/
+**/*.py[cod]
+**/*.pyo
+**/*.pyd
+
+# Pytest cache
+.pytest_cache/

@@ -1,0 +1,634 @@
+# =============================================================================
+# AGIX Parallel Swarm Configuration
+# =============================================================================
+# This configuration file controls the parallel execution features.
+# Set parallel.enabled to true to activate parallel mode.
+
+# -----------------------------------------------------------------------------
+# Parallel Mode Settings
+# -----------------------------------------------------------------------------
+parallel:
+  # Master switch for parallel features (default: false for backward compatibility)
+  enabled: true
+  
+  # Maximum concurrent worker agents
+  max_concurrent_workers: 20
+  
+  # Default timeout for parallel tasks (seconds)
+  default_task_timeout: 600
+  
+  # Enable wave-based execution (tasks grouped by dependencies)
+  wave_execution: true
+  
+  # Maximum waves before forcing sequential execution
+  max_waves: 10
+
+# -----------------------------------------------------------------------------
+# Redis Configuration
+# -----------------------------------------------------------------------------
+redis:
+  # Redis server host
+  host: "redis"
+  
+  # Redis server port
+  port: 6379
+  
+  # Redis database number (0-15)
+  db: 0
+  
+  # Redis password (leave empty for no auth)
+  password: ""
+  
+  # Connection pool settings
+  pool:
+    # Maximum connections in pool
+    max_connections: 50
+    
+    # Connection timeout (seconds)
+    timeout: 10
+    
+    # Retry on connection failure
+    retry_on_timeout: true
+  
+  # Stream settings for message queue
+  streams:
+    # Task queue stream name
+    task_queue: "agix:tasks"
+    
+    # Result queue stream name
+    result_queue: "agix:results"
+    
+    # Error queue stream name
+    error_queue: "agix:errors"
+    
+    # Consumer group name
+    consumer_group: "agix-workers"
+    
+    # Maximum stream length (oldest entries trimmed)
+    max_length: 10000
+    
+    # Block timeout for reading (milliseconds)
+    block_timeout: 5000
+
+# -----------------------------------------------------------------------------
+# Milvus Configuration (Vector Database for Shared Memory)
+# -----------------------------------------------------------------------------
+milvus:
+  # Milvus server host
+  host: "localhost"
+  
+  # Milvus server port
+  port: 19530
+  
+  # Collection name for agent memories
+  collection_name: "agent_memories"
+  
+  # Embedding dimension (must match your embedding model)
+  embedding_dim: 384
+  
+  # Index type: IVF_FLAT, IVF_SQ8, HNSW
+  index_type: "IVF_FLAT"
+  
+  # Index parameters
+  index_params:
+    nlist: 1024
+  
+  # Search parameters
+  search_params:
+    nprobe: 16
+  
+  # Connection settings
+  connection:
+    timeout: 30
+    retry_attempts: 3
+
+# -----------------------------------------------------------------------------
+# Shared Memory Configuration
+# -----------------------------------------------------------------------------
+shared_memory:
+  # Enable two-tier memory (private + shared)
+  two_tier_enabled: true
+  
+  # Private memory settings
+  private:
+    # Maximum entries per agent
+    max_entries: 1000
+    
+    # TTL for private memories (seconds, 0 = no expiry)
+    ttl: 0
+  
+  # Shared memory settings
+  shared:
+    # Maximum total shared entries
+    max_entries: 10000
+    
+    # TTL for shared memories (seconds, 0 = no expiry)
+    ttl: 0
+    
+    # Enable provenance tracking
+    provenance_tracking: true
+    
+    # Broadcast new shared memories to all agents
+    broadcast_enabled: true
+  
+  # Retrieval settings
+  retrieval:
+    # Default number of results to return
+    top_k: 10
+    
+    # Minimum similarity score (0.0 - 1.0)
+    min_similarity: 0.5
+    
+    # Enable perspective-based boosting
+    perspective_boost: true
+    
+    # Boost factor for own memories (1.0 = no boost)
+    own_memory_boost: 1.2
+
+# -----------------------------------------------------------------------------
+# Agent Pool Configuration
+# -----------------------------------------------------------------------------
+agent_pool:
+  # Semaphore limit for concurrent execution
+  semaphore_limit: 20
+  
+  # Worker health check interval (seconds)
+  health_check_interval: 30
+  
+  # Maximum consecutive failures before marking unhealthy
+  max_consecutive_failures: 3
+  
+  # Worker profiles (can be extended)
+  profiles:
+    default:
+      model: "default"
+      temperature: 0.7
+      max_tokens: 4096
+    
+    researcher:
+      model: "default"
+      temperature: 0.3
+      max_tokens: 8192
+    
+    code:
+      model: "opus-4.6-1m"
+      reasoning_model: "opus-4.6-1m"
+      execution_model: "opus-4.6-1m"
+      temperature: 0.2
+      max_tokens: 8192
+    
+    architect:
+      model: "opus-4.6-1m"
+      temperature: 0.2
+      max_tokens: 8192
+
+    debug:
+      model: "opus-4.6-1m"
+      temperature: 0.2
+      max_tokens: 8192
+
+    andy:
+      model: "gemini-3-flash"
+      temperature: 0.5
+      max_tokens: 4096
+
+    ask:
+      model: "gemini-3-flash"
+      temperature: 0.5
+      max_tokens: 4096
+
+    frontend_design:
+      model: "google/gemini-3-pro-preview"
+      temperature: 0.7
+      max_tokens: 8192
+
+# -----------------------------------------------------------------------------
+# Auto-scaling Configuration
+# -----------------------------------------------------------------------------
+auto_scaling:
+  # Enable automatic worker pool scaling
+  enabled: true
+  
+  # Minimum number of workers to maintain
+  min_workers: 2
+  
+  # Maximum number of workers allowed
+  max_workers: 20
+  
+  # Target tasks per worker (queue depth / workers)
+  target_queue_depth: 5
+  
+  # Target p95 latency in milliseconds
+  target_latency_p95_ms: 5000
+  
+  # Utilization threshold to trigger scale up (0.0-1.0)
+  scale_up_threshold: 0.8
+  
+  # Utilization threshold to trigger scale down (0.0-1.0)
+  scale_down_threshold: 0.3
+  
+  # Minimum seconds between scaling actions (cooldown)
+  cooldown_seconds: 60
+  
+  # Number of workers to add when scaling up
+  scale_up_increment: 2
+  
+  # Number of workers to remove when scaling down
+  scale_down_increment: 1
+  
+  # Seconds between scaling evaluations
+  evaluation_interval: 30
+  
+  # Number of historical metrics to retain for trend analysis
+  metrics_history_size: 60
+
+# -----------------------------------------------------------------------------
+# Cross-Agent Learning Configuration
+# -----------------------------------------------------------------------------
+cross_agent_learning:
+  # Enable cross-agent learning system
+  enabled: true
+  
+  # Enable real-time broadcast of new knowledge
+  broadcast_enabled: true
+  
+  # Consolidation interval in seconds (default: 1 hour)
+  consolidation_interval: 3600
+  
+  # Minimum confidence threshold for knowledge to be used
+  min_confidence_threshold: 0.3
+  
+  # Initial confidence for new knowledge
+  initial_confidence: 0.5
+  
+  # Confidence boosts for validation
+  validation_boost_self: 0.1
+  validation_boost_peer: 0.2
+  validation_boost_multi: 0.3
+  validation_boost_production: 0.4
+  
+  # Confidence penalties
+  validation_penalty: 0.15
+  usage_success_boost: 0.05
+  usage_failure_penalty: 0.1
+  
+  # Production proven threshold (successful uses)
+  production_proven_usage_count: 10
+  
+  # Maximum knowledge entries to store
+  max_knowledge_entries: 10000
+  
+  # TTL for knowledge entries (0 = no expiry)
+  knowledge_ttl: 0
+  
+  # Redis key prefixes
+  knowledge_prefix: "learning:knowledge"
+  broadcast_channel: "learning:broadcast"
+  index_prefix: "learning:index"
+
+# -----------------------------------------------------------------------------
+# Distributed Execution Configuration
+# -----------------------------------------------------------------------------
+distributed_execution:
+  # Enable distributed execution across multiple nodes
+  enabled: false
+  
+  # Node registry settings (Consul-based)
+  registry:
+    # Consul server host
+    consul_host: "localhost"
+    
+    # Consul server port
+    consul_port: 8500
+    
+    # Service name for registration
+    service_name: "agix-worker"
+    
+    # Heartbeat interval (seconds)
+    heartbeat_interval: 10.0
+    
+    # Health check interval (seconds)
+    health_check_interval: 30.0
+    
+    # Node timeout before marking unhealthy (seconds)
+    node_timeout: 60.0
+    
+    # Leader election TTL (seconds)
+    leader_ttl: 30.0
+    
+    # Leader election key
+    leader_key: "agix/leader"
+  
+  # Task routing settings
+  routing:
+    # Scoring weights (should sum to 1.0)
+    capacity_weight: 0.4
+    affinity_weight: 0.3
+    locality_weight: 0.2
+    load_weight: 0.1
+    
+    # Affinity bonus for matching profiles
+    affinity_bonus: 0.2
+    
+    # Maximum routing retries
+    max_retries: 3
+    
+    # Retry delay (seconds)
+    retry_delay: 1.0
+    
+    # Maximum routing history entries
+    max_history_size: 1000
+
+# -----------------------------------------------------------------------------
+# ML Optimization Configuration
+# -----------------------------------------------------------------------------
+ml_optimization:
+  # Enable ML-based optimization
+  enabled: false
+  
+  # Routing model settings
+  routing:
+    # Model type: gradient_boosting, random_forest, neural_network
+    model_type: "gradient_boosting"
+    
+    # Minimum training samples before model is used
+    min_training_samples: 100
+    
+    # Confidence threshold for using ML predictions
+    confidence_threshold: 0.7
+  
+  # Timeout prediction settings
+  timeout:
+    # Model type: random_forest, xgboost, linear_regression
+    model_type: "random_forest"
+    
+    # Safety multiplier for recommended timeout
+    safety_multiplier: 2.0
+    
+    # Minimum training samples
+    min_training_samples: 100
+  
+  # Strategy prediction settings
+  strategy:
+    # Enable parallelization strategy prediction
+    enabled: true
+    
+    # Minimum subtasks for parallel recommendation
+    parallel_subtask_threshold: 3
+    
+    # Maximum workers for parallel execution
+    max_parallel_workers: 5
+  
+  # Training settings
+  training:
+    # Retrain interval in hours
+    retrain_interval_hours: 24
+    
+    # Maximum execution records to store
+    max_records: 10000
+    
+    # Model persistence path
+    model_path: "models/ml_optimizer"
+  
+  # Feature extraction settings
+  feature_extraction:
+    # Code keywords for task classification
+    code_keywords:
+      - "code"
+      - "function"
+      - "implement"
+      - "debug"
+      - "script"
+      - "api"
+    
+    # Research keywords
+    research_keywords:
+      - "research"
+      - "study"
+      - "investigate"
+      - "summarize"
+      - "review"
+    
+    # Analysis keywords
+    analysis_keywords:
+      - "analyze"
+      - "examine"
+      - "evaluate"
+      - "compare"
+      - "benchmark"
+
+# -----------------------------------------------------------------------------
+# Retry Configuration
+# -----------------------------------------------------------------------------
+retry:
+  # Default retry strategy: exponential, linear, aggressive, conservative, adaptive
+  default_strategy: "exponential"
+  
+  # Maximum retry attempts
+  max_attempts: 3
+  
+  # Strategies configuration
+  strategies:
+    exponential:
+      base_delay: 1.0
+      max_delay: 60.0
+      multiplier: 2.0
+      jitter: true
+    
+    linear:
+      base_delay: 2.0
+      max_delay: 30.0
+      increment: 2.0
+    
+    aggressive:
+      base_delay: 0.5
+      max_delay: 10.0
+      multiplier: 1.5
+    
+    conservative:
+      base_delay: 5.0
+      max_delay: 120.0
+      multiplier: 3.0
+    
+    adaptive:
+      initial_delay: 1.0
+      success_decrease: 0.8
+      failure_increase: 1.5
+      min_delay: 0.5
+      max_delay: 60.0
+  
+  # Retryable error patterns (regex)
+  retryable_errors:
+    - "timeout"
+    - "rate_limit"
+    - "connection_refused"
+    - "temporary_failure"
+    - "503"
+    - "429"
+  
+  # Non-retryable error patterns (regex)
+  non_retryable_errors:
+    - "invalid_api_key"
+    - "permission_denied"
+    - "not_found"
+    - "400"
+    - "401"
+    - "403"
+
+# -----------------------------------------------------------------------------
+# Error Recovery Configuration
+# -----------------------------------------------------------------------------
+error_recovery:
+  # Enable Challenger method for message verification
+  challenger_enabled: true
+  
+  # Enable Inspector agent for result validation
+  inspector_enabled: true
+  
+  # Escalation hierarchy
+  escalation:
+    # First try alternative worker
+    alternative_worker: true
+    
+    # Then try alternative model
+    alternative_model: true
+    
+    # Finally escalate to human
+    human_escalation: true
+    
+    # Timeout before human escalation (seconds)
+    human_escalation_timeout: 600
+  
+  # Dead letter queue settings
+  dead_letter:
+    enabled: true
+    max_entries: 1000
+    retention_days: 7
+
+# -----------------------------------------------------------------------------
+# Circuit Breaker Configuration
+# -----------------------------------------------------------------------------
+circuit_breaker:
+  # Enable circuit breaker
+  enabled: true
+  
+  # Failure threshold to open circuit
+  failure_threshold: 5
+  
+  # Success threshold to close circuit (in half-open state)
+  success_threshold: 3
+  
+  # Time to wait before half-open (seconds)
+  recovery_timeout: 60
+  
+  # Enable adaptive thresholds
+  adaptive_enabled: true
+  
+  # Adaptive settings
+  adaptive:
+    # Window size for calculating failure rate
+    window_size: 100
+    
+    # Minimum requests before adaptive kicks in
+    min_requests: 10
+    
+    # Failure rate threshold (0.0 - 1.0)
+    failure_rate_threshold: 0.5
+
+# -----------------------------------------------------------------------------
+# Observer Mesh Configuration
+# -----------------------------------------------------------------------------
+observer_mesh:
+  # Enable distributed monitoring
+  enabled: true
+  
+  # Observation interval (seconds)
+  observation_interval: 10
+  
+  # Anomaly detection settings
+  anomaly_detection:
+    # Detect action repetition
+    action_repetition_threshold: 3
+    
+    # Detect reasoning loops
+    reasoning_loop_threshold: 5
+    
+    # Detect progress stalls (seconds without progress)
+    progress_stall_threshold: 120
+    
+    # Detect contradictory outputs
+    contradiction_detection: true
+  
+  # Alert settings
+  alerts:
+    # Log anomalies
+    log_enabled: true
+    
+    # Trigger recovery on anomaly
+    auto_recovery: true
+    
+    # Notify orchestrator
+    notify_orchestrator: true
+
+# -----------------------------------------------------------------------------
+# Metrics Configuration
+# -----------------------------------------------------------------------------
+metrics:
+  # Enable Prometheus metrics
+  enabled: true
+  
+  # Metrics endpoint path
+  endpoint: "/metrics"
+  
+  # Metrics port (if separate from main app)
+  port: 8000
+  
+  # Histogram buckets for latency metrics
+  latency_buckets:
+    - 0.1
+    - 0.5
+    - 1.0
+    - 2.5
+    - 5.0
+    - 10.0
+    - 30.0
+    - 60.0
+    - 120.0
+
+# -----------------------------------------------------------------------------
+# Tracing Configuration
+# -----------------------------------------------------------------------------
+tracing:
+  # Enable distributed tracing
+  enabled: true
+  
+  # Jaeger agent host
+  jaeger_host: "localhost"
+  
+  # Jaeger agent port
+  jaeger_port: 6831
+  
+  # Service name for traces
+  service_name: "agix"
+  
+  # Sampling rate (0.0 - 1.0)
+  sampling_rate: 1.0
+
+# -----------------------------------------------------------------------------
+# Logging Configuration
+# -----------------------------------------------------------------------------
+logging:
+  # Log level: DEBUG, INFO, WARNING, ERROR
+  level: "INFO"
+  
+  # Log format
+  format: "%(asctime)s - %(name)s - %(levelname)s - %(message)s"
+  
+  # Log parallel execution details
+  log_parallel_execution: true
+  
+  # Log memory operations
+  log_memory_operations: false
+  
+  # Log retry attempts
+  log_retry_attempts: true

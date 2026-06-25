@@ -1,0 +1,15 @@
+<div class="settings-scroll-buttons-container" x-data x-show="$store.settingsScrollButtons.isVisible"
+    x-transition:enter="transition ease-out duration-300" x-transition:enter-start="opacity-0 scale-90"
+    x-transition:enter-end="opacity-100 scale-100" x-transition:leave="transition ease-in duration-300"
+    x-transition:leave-start="opacity-100 scale-100" x-transition:leave-end="opacity-0 scale-90">
+
+    <button class="settings-scroll-button scroll-top" x-show="$store.settingsScrollButtons.showTop"
+        @click="$store.settingsScrollButtons.scrollToTop()" title="Scroll to Top">
+        <span class="material-symbols-outlined">arrow_upward</span>
+    </button>
+
+    <button class="settings-scroll-button scroll-bottom" x-show="$store.settingsScrollButtons.showBottom"
+        @click="$store.settingsScrollButtons.scrollToBottom()" title="Scroll to Bottom">
+        <span class="material-symbols-outlined">arrow_downward</span>
+    </button>
+</div>

@@ -1,0 +1,255 @@
+<!-- 
+Mode Selector Component
+Displays current mode and allows switching between modes.
+Part of the MultiAgentDev system.
+-->
+
+<div class="mode-selector" x-data="{ localOpen: false }"
+    @click.outside="$store.modeSelector.closeDropdown(); localOpen = false">
+
+    <!-- Current Mode Button -->
+    <button class="mode-selector-button" :class="{ 'active': $store.modeSelector.isOpen || localOpen }"
+        @click="$store.modeSelector.toggleDropdown(); localOpen = !localOpen" :disabled="$store.modeSelector.isLoading"
+        :title="$store.modeSelector.currentModeDescription">
+
+        <!-- Mode Icon -->
+        <span class="mode-icon" x-text="$store.modeSelector.getIcon($store.modeSelector.currentMode)"></span>
+
+        <!-- Mode Name (short) -->
+        <span class="mode-name" x-text="$store.modeSelector.currentMode"></span>
+
+        <!-- Dropdown Arrow -->
+        <svg class="dropdown-arrow" :class="{ 'rotated': $store.modeSelector.isOpen || localOpen }" width="12"
+            height="12" viewBox="0 0 12 12" fill="none">
+            <path d="M3 4.5L6 7.5L9 4.5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"
+                stroke-linejoin="round" />
+        </svg>
+
+        <!-- Loading Spinner -->
+        <span class="loading-spinner" x-show="$store.modeSelector.isLoading">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                <circle cx="12" cy="12" r="10" stroke-width="2" stroke-dasharray="31.4" stroke-dashoffset="10">
+                    <animateTransform attributeName="transform" type="rotate" from="0 12 12" to="360 12 12" dur="1s"
+                        repeatCount="indefinite" />
+                </circle>
+            </svg>
+        </span>
+    </button>
+
+    <!-- Dropdown Menu -->
+    <div class="mode-dropdown" x-show="$store.modeSelector.isOpen || localOpen"
+        x-transition:enter="transition ease-out duration-150" x-transition:enter-start="opacity-0 transform scale-95"
+        x-transition:enter-end="opacity-100 transform scale-100" x-transition:leave="transition ease-in duration-100"
+        x-transition:leave-start="opacity-100 transform scale-100"
+        x-transition:leave-end="opacity-0 transform scale-95">
+
+        <!-- Mode List -->
+        <template x-for="mode in $store.modeSelector.modes" :key="mode.slug">
+            <button class="mode-option" :class="{ 'selected': mode.slug === $store.modeSelector.currentMode }"
+                @click="$store.modeSelector.switchMode(mode.slug); localOpen = false"
+                :style="{ '--mode-color': $store.modeSelector.getColor(mode.slug) }">
+
+                <!-- Mode Icon -->
+                <span class="mode-option-icon" x-text="$store.modeSelector.getIcon(mode.slug)"></span>
+
+                <!-- Mode Info -->
+                <div class="mode-option-info">
+                    <span class="mode-option-name" x-text="mode.display_name || mode.name"></span>
+                    <span class="mode-option-desc" x-text="mode.description"></span>
+                </div>
+
+                <!-- Selected Checkmark -->
+                <svg class="mode-option-check" x-show="mode.slug === $store.modeSelector.currentMode" width="16"
+                    height="16" viewBox="0 0 16 16" fill="none">
+                    <path d="M3 8L6.5 11.5L13 5" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                        stroke-linejoin="round" />
+                </svg>
+            </button>
+        </template>
+
+        <!-- Divider -->
+        <div class="mode-dropdown-divider"></div>
+
+        <!-- Mode Info Footer -->
+        <div class="mode-dropdown-footer">
+            <span class="mode-info-label">Current mode affects available tools and behavior</span>
+        </div>
+    </div>
+</div>
+
+<style>
+    .mode-selector {
+        position: relative;
+        display: inline-flex;
+        align-items: center;
+    }
+
+    .mode-selector-button {
+        display: flex;
+        align-items: center;
+        gap: 6px;
+        padding: 6px 10px;
+        background: var(--bg-secondary, #2a2a2a);
+        border: 1px solid var(--border-color, #3a3a3a);
+        border-radius: 6px;
+        color: var(--text-primary, #e0e0e0);
+        font-size: 13px;
+        cursor: pointer;
+        transition: all 0.15s ease;
+    }
+
+    .mode-selector-button:hover {
+        background: var(--bg-hover, #333);
+        border-color: var(--border-hover, #4a4a4a);
+    }
+
+    .mode-selector-button.active {
+        background: var(--bg-active, #3a3a3a);
+        border-color: var(--accent-color, #4CAF50);
+    }
+
+    .mode-selector-button:disabled {
+        opacity: 0.6;
+        cursor: not-allowed;
+    }
+
+    .mode-icon {
+        font-size: 16px;
+        line-height: 1;
+    }
+
+    .mode-name {
+        font-weight: 500;
+        text-transform: capitalize;
+    }
+
+    .dropdown-arrow {
+        transition: transform 0.15s ease;
+        opacity: 0.6;
+    }
+
+    .dropdown-arrow.rotated {
+        transform: rotate(180deg);
+    }
+
+    .loading-spinner {
+        display: flex;
+        align-items: center;
+        margin-left: 4px;
+    }
+
+    .loading-spinner svg {
+        animation: spin 1s linear infinite;
+    }
+
+    @keyframes spin {
+        from {
+            transform: rotate(0deg);
+        }
+
+        to {
+            transform: rotate(360deg);
+        }
+    }
+
+    .mode-dropdown {
+        position: absolute;
+        top: calc(100% + 4px);
+        left: 0;
+        min-width: 280px;
+        background: var(--bg-dropdown, #2a2a2a);
+        border: 1px solid var(--border-color, #3a3a3a);
+        border-radius: 8px;
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+        z-index: 1000;
+        overflow: hidden;
+    }
+
+    .mode-option {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        width: 100%;
+        padding: 10px 12px;
+        background: transparent;
+        border: none;
+        color: var(--text-primary, #e0e0e0);
+        cursor: pointer;
+        transition: background 0.1s ease;
+        text-align: left;
+    }
+
+    .mode-option:hover {
+        background: var(--bg-hover, #333);
+    }
+
+    .mode-option.selected {
+        background: var(--bg-selected, rgba(76, 175, 80, 0.1));
+    }
+
+    .mode-option.selected .mode-option-name {
+        color: var(--mode-color, var(--accent-color, #4CAF50));
+    }
+
+    .mode-option-icon {
+        font-size: 20px;
+        width: 28px;
+        text-align: center;
+    }
+
+    .mode-option-info {
+        flex: 1;
+        display: flex;
+        flex-direction: column;
+        gap: 2px;
+    }
+
+    .mode-option-name {
+        font-size: 14px;
+        font-weight: 500;
+    }
+
+    .mode-option-desc {
+        font-size: 12.5px;
+        color: var(--text-secondary, #888);
+    }
+
+    .mode-option-check {
+        color: var(--accent-color, #4CAF50);
+        flex-shrink: 0;
+    }
+
+    .mode-dropdown-divider {
+        height: 1px;
+        background: var(--border-color, #3a3a3a);
+        margin: 4px 0;
+    }
+
+    .mode-dropdown-footer {
+        padding: 8px 12px;
+        background: var(--bg-footer, #252525);
+    }
+
+    .mode-info-label {
+        font-size: 12.5px;
+        color: var(--text-muted, #666);
+    }
+
+    /* Responsive adjustments */
+    @media (max-width: 768px) {
+        .mode-name {
+            display: inline-block;
+            font-size: 12px;
+        }
+
+        .mode-selector-button {
+            padding: 6px 8px;
+        }
+
+        .mode-dropdown {
+            min-width: 240px;
+            right: 0;
+            left: auto;
+        }
+    }
+</style>

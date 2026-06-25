@@ -1,0 +1,12 @@
+{
+    "chat_model": "bedrock/us.anthropic.claude-sonnet-4-5-20250929-v1:0",
+    "utility_model": "bedrock/us.anthropic.claude-sonnet-4-5-20250929-v1:0",
+    "embeddings_model": "bedrock/amazon.titan-embed-text-v2:0",
+    "browser_model": "bedrock/us.anthropic.claude-sonnet-4-5-20250929-v1:0",
+    "mcp_servers": "",
+    "profile": "security_auditor",
+    "skills": [
+        "vulnerability-detector",
+        "api-security"
+    ]
+}

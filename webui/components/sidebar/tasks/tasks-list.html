@@ -1,0 +1,517 @@
+<html>
+
+<head>
+  <script type="module">
+    import { store } from "./tasks-store.js";
+  </script>
+</head>
+
+<body>
+  <div x-data>
+    <template x-if="$store.tasks">
+      <div class="tasks-list-container" x-data="{ newTaskInput: '' }">
+        <!-- Progress Bar -->
+        <div class="task-progress-bar" x-show="$store.tasks.hasTasks()">
+          <div class="progress-fill" :style="{ width: $store.tasks.progress.percent_complete + '%' }" :class="{
+                   'progress-complete': $store.tasks.progress.percent_complete === 100,
+                   'progress-partial': $store.tasks.progress.percent_complete > 0 && $store.tasks.progress.percent_complete < 100
+                 }"></div>
+        </div>
+
+        <!-- Mission Statement -->
+        <div class="task-mission" x-show="$store.tasks.mission" x-text="$store.tasks.mission"></div>
+
+
+        <!-- Task List -->
+        <ul class="config-list tasks-config-list" x-show="$store.tasks.hasTasks()">
+          <template x-for="task in $store.tasks.tasks" :key="task.id">
+            <li class="task-item" :class="[$store.tasks.getStatusClass(task.status), 
+                           { 'task-current': $store.tasks.isCurrentTask(task.id) }]">
+              <div class="task-container">
+
+                <!-- Queue Position or Status Icon -->
+                <span class="task-status-icon">
+                  <template x-if="$store.tasks.isCurrentTask(task.id)">
+                    <span class="current-task-indicator" title="Currently processing">⚡</span>
+                  </template>
+                  <template x-if="!$store.tasks.isCurrentTask(task.id) && $store.tasks.getQueuePosition(task.id) > 0">
+                    <span class="queue-position" :title="'Queue position ' + $store.tasks.getQueuePosition(task.id)"
+                      x-text="'#' + $store.tasks.getQueuePosition(task.id)"></span>
+                  </template>
+                  <template x-if="!$store.tasks.isCurrentTask(task.id) && $store.tasks.getQueuePosition(task.id) === 0">
+                    <span x-text="$store.tasks.getStatusIcon(task.status)"></span>
+                  </template>
+                </span>
+
+                <!-- Task Description -->
+                <span class="task-description" :class="{ 'task-completed': task.status === 'completed' }"
+                  :title="task.description" x-text="task.description"></span>
+
+                <!-- Uptime Badge -->
+                <template x-if="task.status === 'in_progress' && task.started_at">
+                  <span class="uptime-badge" x-text="$store.tasks.getUptimeMinutes(task.started_at) + 'm'"></span>
+                </template>
+
+                <!-- Assignee Badge -->
+                <span class="task-assignee" x-show="task.assigned_to" x-text="'@' + task.assigned_to"></span>
+
+                <!-- Action Buttons -->
+                <div class="task-actions">
+                  <!-- Start button (for pending tasks not in queue) -->
+                  <button class="task-action-btn task-start-btn"
+                    x-show="task.status === 'pending' && $store.tasks.getQueuePosition(task.id) === 0"
+                    @click.stop="$store.tasks.startTask(task.id)" title="Start task">▶</button>
+
+                  <!-- Complete button (for in-progress tasks) -->
+                  <button class="task-action-btn task-complete-btn" x-show="task.status === 'in_progress'"
+                    @click.stop="$store.tasks.completeTask(task.id)" title="Complete task">✓</button>
+
+                  <!-- Remove button -->
+                  <button class="task-action-btn task-remove-btn" @click.stop="$store.tasks.removeTask(task.id)"
+                    title="Remove task">×</button>
+                </div>
+              </div>
+
+              <!-- Blocked indicator -->
+              <div class="task-blocked-info" x-show="task.status === 'blocked' && task.dependencies?.length">
+                <span class="blocked-label">Blocked by:</span>
+                <span x-text="(task.dependencies || []).join(', ')"></span>
+              </div>
+
+              <!-- Error message for failed tasks -->
+              <div class="task-error-info" x-show="task.status === 'failed' && task.error">
+                <span class="error-label">Error:</span>
+                <span x-text="task.error"></span>
+              </div>
+            </li>
+          </template>
+        </ul>
+
+        <!-- Empty State -->
+        <div class="empty-list-message" x-show="!$store.tasks.hasTasks() && !$store.tasks.isLoading">
+          <p><i>No queued tasks for this chat.</i></p>
+        </div>
+
+        <!-- Loading State -->
+        <div class="loading-message" x-show="$store.tasks.isLoading">
+          <p><i>Loading tasks...</i></p>
+        </div>
+
+        <!-- Add Task Input (Queue) -->
+        <div class="add-task-container" x-show="$store.tasks.lastFetchedContext">
+          <input type="text" class="add-task-input"
+            :placeholder="$store.tasks.getQueueLength() > 0 ? 'Add to queue...' : 'Add a task...'"
+            x-model="newTaskInput"
+            @keydown.enter="if(newTaskInput.trim()) { $store.tasks.addTask(newTaskInput.trim()); newTaskInput = ''; }">
+          <button class="icon-btn"
+            @click="if(newTaskInput.trim()) { $store.tasks.addTask(newTaskInput.trim()); newTaskInput = ''; }"
+            :disabled="!newTaskInput.trim()" :title="$store.tasks.getQueueLength() > 0 ? 'Add to queue' : 'Add task'">
+            <span class="material-symbols-outlined">add</span>
+          </button>
+          <!-- Clear queue button -->
+          <button class="icon-btn" x-show="$store.tasks.getQueueLength() > 1" @click="$store.tasks.clearQueue()"
+            title="Clear queue">🗑️</button>
+        </div>
+
+      </div>
+    </template>
+  </div>
+
+  <style>
+    /* Tasks list container */
+    .tasks-list-container {
+      display: flex;
+      flex-direction: column;
+      min-height: 0;
+      border-top: 1px solid var(--color-border);
+    }
+
+    .tasks-list-container .section-header {
+      position: sticky;
+      top: 0;
+      flex-shrink: 0;
+      z-index: 10;
+      background-color: var(--color-panel);
+    }
+
+    .tasks-list-container .section-header .header-left {
+      display: flex;
+      align-items: center;
+      gap: 0.5em;
+    }
+
+    .tasks-list-container .section-header .header-right {
+      display: flex;
+      align-items: center;
+    }
+
+    .collapse-icon {
+      font-size: 0.7em;
+      transition: transform 0.2s ease;
+    }
+
+    .collapse-icon.collapsed {
+      transform: rotate(-90deg);
+    }
+
+    .task-count {
+      font-size: var(--font-size-small);
+      color: var(--color-secondary);
+      font-weight: normal;
+    }
+
+    .progress-badge {
+      font-size: var(--font-size-small);
+      padding: 2px 6px;
+      border-radius: 10px;
+      background-color: var(--color-background-hover);
+      color: var(--color-secondary);
+    }
+
+    .progress-badge.progress-complete {
+      background-color: var(--color-success, #28a745);
+      color: white;
+    }
+
+    /* Queue Badge */
+    .queue-badge {
+      font-size: var(--font-size-small);
+      padding: 2px 6px;
+      border-radius: 10px;
+      background-color: var(--color-primary);
+      color: white;
+      margin-right: 0.5em;
+      animation: none;
+    }
+
+    .queue-badge.queue-processing {
+      animation: pulse-queue 1.5s ease-in-out infinite;
+    }
+
+    @keyframes pulse-queue {
+
+      0%,
+      100% {
+        opacity: 1;
+      }
+
+      50% {
+        opacity: 0.6;
+      }
+    }
+
+    /* Progress Bar */
+    .task-progress-bar {
+      height: 4px;
+      background-color: var(--color-border);
+      border-radius: 2px;
+      margin: 0.5rem 0;
+      overflow: hidden;
+    }
+
+    .progress-fill {
+      height: 100%;
+      background-color: var(--color-primary);
+      transition: width 0.3s ease;
+      border-radius: 2px;
+    }
+
+    .progress-fill.progress-complete {
+      background-color: var(--color-success, #28a745);
+    }
+
+    .progress-fill.progress-partial {
+      background-color: var(--color-primary);
+    }
+
+    /* Mission Statement */
+    .task-mission {
+      font-size: var(--font-size-small);
+      color: var(--color-secondary);
+      padding: 0.5rem;
+      background-color: var(--color-background-hover);
+      border-radius: 4px;
+      margin-bottom: 0.5rem;
+      font-style: italic;
+    }
+
+    /* Task List */
+    .tasks-config-list {
+      flex: 1;
+      min-height: 0;
+      overflow-y: auto;
+      scroll-behavior: smooth;
+      scrollbar-width: thin;
+      padding: 0;
+      margin: 0;
+      list-style: none;
+    }
+
+    .tasks-config-list::-webkit-scrollbar {
+      width: 4px;
+    }
+
+    .tasks-config-list::-webkit-scrollbar-thumb {
+      background-color: var(--color-border);
+      border-radius: 2px;
+    }
+
+    /* Task Item */
+    .task-item {
+      padding: 0.5rem 1rem 0.5rem 0.5rem;
+      border-radius: 4px;
+      margin: 0 12px 0.25rem 0;
+      transition: all 0.2s ease;
+      box-shadow: none;
+    }
+
+    .task-item:hover {
+      background-color: var(--color-background-hover);
+      box-shadow: var(--shadow-sm);
+      transform: translateX(4px);
+    }
+
+    .task-container {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+
+    .task-status-icon {
+      flex-shrink: 0;
+      font-size: 1em;
+      min-width: 1.5em;
+      text-align: center;
+    }
+
+    .queue-position {
+      font-size: 0.75em;
+      font-weight: bold;
+      color: var(--color-primary);
+      background-color: var(--color-background-hover);
+      padding: 1px 4px;
+      border-radius: 3px;
+    }
+
+    .current-task-indicator {
+      animation: pulse-current 1s ease-in-out infinite;
+    }
+
+    @keyframes pulse-current {
+
+      0%,
+      100% {
+        opacity: 1;
+        transform: scale(1);
+      }
+
+      50% {
+        opacity: 0.7;
+        transform: scale(1.1);
+      }
+    }
+
+    /* Current task highlight */
+    .task-current {
+      background-color: rgba(var(--color-primary-rgb, 0, 123, 255), 0.15);
+      border-left: 3px solid var(--color-primary);
+    }
+
+    .task-description {
+      flex: 1;
+      font-size: var(--font-size-small);
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .task-description.task-completed {
+      text-decoration: line-through;
+      opacity: 0.7;
+    }
+
+    .task-assignee {
+      font-size: var(--font-size-small);
+      color: var(--color-primary);
+      background-color: var(--color-background-hover);
+      padding: 1px 4px;
+      border-radius: 3px;
+      flex-shrink: 0;
+    }
+
+    /* Uptime Badge */
+    .uptime-badge {
+      font-size: 0.65rem;
+      color: var(--color-success, #28a745);
+      background-color: rgba(40, 167, 69, 0.1);
+      padding: 1px 4px;
+      border-radius: 3px;
+      font-weight: 600;
+      flex-shrink: 0;
+      white-space: nowrap;
+    }
+
+    /* Task Actions */
+    .task-actions {
+      display: flex;
+      gap: 0.25rem;
+      opacity: 0;
+      transition: opacity 0.2s ease;
+    }
+
+    .task-item:hover .task-actions {
+      opacity: 1;
+    }
+
+    .task-action-btn {
+      width: 24px;
+      height: 24px;
+      padding: 0;
+      border: 1px solid var(--color-border);
+      border-radius: 3px;
+      background-color: transparent;
+      color: var(--color-text);
+      cursor: pointer;
+      font-size: 0.8em;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: all 0.2s ease;
+    }
+
+    .task-action-btn:hover {
+      background-color: var(--color-background-hover);
+      border-color: var(--color-primary);
+    }
+
+    .task-start-btn:hover {
+      color: var(--color-success, #28a745);
+      border-color: var(--color-success, #28a745);
+    }
+
+    .task-complete-btn:hover {
+      color: var(--color-success, #28a745);
+      border-color: var(--color-success, #28a745);
+    }
+
+    .task-remove-btn:hover {
+      color: var(--color-error, #dc3545);
+      border-color: var(--color-error, #dc3545);
+    }
+
+    /* Status-specific styles */
+    .task-status-in_progress {
+      background-color: rgba(var(--color-primary-rgb, 0, 123, 255), 0.1);
+    }
+
+    .task-status-blocked {
+      background-color: rgba(255, 193, 7, 0.1);
+    }
+
+    .task-status-failed {
+      background-color: rgba(220, 53, 69, 0.1);
+    }
+
+    .task-status-completed {
+      opacity: 0.7;
+    }
+
+    /* Blocked/Error Info */
+    .task-blocked-info,
+    .task-error-info {
+      font-size: var(--font-size-small);
+      padding-left: 1.5rem;
+      margin-top: 0.25rem;
+      color: var(--color-secondary);
+    }
+
+    .blocked-label {
+      color: #ffc107;
+    }
+
+    .error-label {
+      color: var(--color-error, #dc3545);
+    }
+
+    /* Empty/Loading States */
+    .empty-list-message,
+    .loading-message {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      padding: 1rem;
+      color: var(--color-muted-foreground);
+      text-align: center;
+      opacity: 0.8;
+      /* Slightly increased for better readability */
+      font-style: italic;
+      font-size: var(--font-size-small);
+    }
+
+    /* Add Task Input */
+    .add-task-container {
+      display: flex;
+      gap: 0.5rem;
+      padding: 0.75rem var(--spacing-md);
+      /* Increased padding for clarity */
+      margin-top: 0.5rem;
+      border-top: 1px solid var(--color-border);
+      align-items: center;
+      /* Ensure vertical alignment */
+    }
+
+    .add-task-input {
+      flex: 1;
+      padding: 0 0.5rem;
+      /* Reduce padding for small height */
+      border: 1px solid var(--color-border);
+      border-radius: 4px;
+      background-color: var(--color-background);
+      color: var(--color-text);
+      font-size: 13px;
+      /* Increased from 11px */
+      height: 24px;
+      /* Increased from 20px */
+      /* Match .icon-btn height */
+    }
+
+    .add-task-input:focus {
+      outline: none;
+      border-color: var(--color-primary);
+    }
+
+    .add-task-input::placeholder {
+      color: var(--color-muted-foreground);
+      opacity: 0.8;
+    }
+
+    .clear-queue-btn {
+      width: 32px;
+      height: 32px;
+      padding: 0;
+      border: 1px solid var(--color-border);
+      border-radius: 4px;
+      background-color: transparent;
+      color: var(--color-text);
+      cursor: pointer;
+      font-size: 0.9em;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: all 0.2s ease;
+    }
+
+    .clear-queue-btn:hover {
+      background-color: var(--color-error, #dc3545);
+      border-color: var(--color-error, #dc3545);
+      color: white;
+    }
+
+    /* Light mode adjustments */
+    .light-mode .add-task-input {
+      background-color: white;
+    }
+  </style>
+</body>
+
+</html>

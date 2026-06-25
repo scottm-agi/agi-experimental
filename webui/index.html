@@ -1,0 +1,634 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+    <title>AGIX</title>
+    <link rel="icon" type="image/png" href="public/agix_logo.png">
+    <link rel="stylesheet" href="index.css">
+    <link rel="stylesheet" href="css/messages.css">
+    <link rel="stylesheet" href="components/messages/action-buttons/simple-action-buttons.css">
+    <link rel="stylesheet" href="css/toast.css">
+    <link rel="stylesheet" href="css/settings.css">
+    <link rel="stylesheet" href="css/modals.css">
+    <link rel="stylesheet" href="css/speech.css">
+    <link rel="stylesheet" href="css/scheduler-datepicker.css">
+    <link rel="stylesheet" href="css/notification.css">
+    <link rel="stylesheet" href="css/buttons.css">
+    <link rel="stylesheet" href="css/a2ui-tile.css">
+    <link rel="stylesheet" href="css/a2ui-task-components.css">
+    <link rel="stylesheet" href="components/chat/scroll-buttons/scroll-buttons.css">
+    <link rel="stylesheet" href="components/settings/scroll-buttons/settings-scroll-buttons.css">
+
+    <!-- Flatpickr for datetime picker -->
+    <link rel="stylesheet" href="vendor/flatpickr/flatpickr.min.css">
+    <script src="vendor/flatpickr/flatpickr.min.js"></script>
+
+    <!-- Google Icons & Material Symbols -->
+    <link rel="stylesheet" href="vendor/google/google-icons.css" />
+    <link rel="stylesheet"
+        href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200" />
+
+    <script>
+        globalThis.safeCall = function (name, ...args) {
+            if (window[name]) window[name](...args)
+        }
+    </script>
+
+    <!-- Pre-initialize schedulerSettings to ensure Alpine doesn't miss it -->
+    <script>
+        // Pre-define schedulerSettings skeleton to ensure it's available to Alpine
+        globalThis.schedulerSettings = function () {
+            return {
+                tasks: [],
+                isLoading: true,
+                selectedTask: null,
+                expandedTaskId: null,
+                sortField: 'name',
+                sortDirection: 'asc',
+                filterType: 'all',
+                filterState: 'all',
+                pollingInterval: null,
+                pollingActive: false,
+                someTasksSelected: false,
+                selectedTaskIds: [],
+                editingTask: {
+                    name: '',
+                    type: 'scheduled',
+                    state: 'idle',
+                    schedule: {
+                        minute: '*',
+                        hour: '*',
+                        day: '*',
+                        month: '*',
+                        weekday: '*',
+                        timezone: ''
+                    },
+                    token: '',
+                    plan: {
+                        todo: [],
+                        in_progress: null,
+                        done: []
+                    },
+                    system_prompt: '',
+                    prompt: '',
+                    attachments: []
+                },
+                isCreating: false,
+                isEditing: false,
+                showLoadingState: false,
+                viewMode: 'list',
+                selectedTaskForDetail: null,
+                attachmentsText: '',
+                filteredTasks: [],
+                projectOptions: [],
+                selectedProjectSlug: '',
+                isProjectDropdownOpen: false,
+                projectSearchQuery: '',
+                selectedFrequency: 'custom',
+                setFrequency(freq) {
+                    this.selectedFrequency = freq;
+                    if (freq !== 'custom') {
+                        const parts = freq.split(' ');
+                        if (parts.length >= 5) {
+                            this.editingTask.schedule.minute = parts[0];
+                            this.editingTask.schedule.hour = parts[1];
+                            this.editingTask.schedule.day = parts[2];
+                            this.editingTask.schedule.month = parts[3];
+                            this.editingTask.schedule.weekday = parts[4];
+                        }
+                    }
+                },
+                init() {
+                    console.log('Basic schedulerSettings initialized');
+                    this.$watch('editingTask.type', (newType) => {
+                        if (newType === 'planned') {
+                            this.$nextTick(() => {
+                                if (typeof this.initFlatpickr === 'function') {
+                                    if (this.isCreating) {
+                                        this.initFlatpickr('create');
+                                    } else if (this.isEditing) {
+                                        this.initFlatpickr('edit');
+                                    }
+                                }
+                            });
+                        }
+                    });
+                }
+            };
+        };
+
+        // Initialize confirmationPopover component stub to prevent Alpine errors
+        globalThis.confirmationPopover = function () {
+            return {
+                init() {
+                    console.log('confirmationPopover component stub initialized');
+                }
+            };
+        };
+    </script>
+
+    <!-- Load module scripts first -->
+    <script type="module" src="js/scheduler.js"></script>
+    <script type="module" src="js/confirmation-store.js"></script>
+    <script type="module" src="js/file-preview.js"></script>
+
+    <script type="module" src="index.js"></script>
+
+    <!-- Bootstrap JS (only for logic, importing bundled CSS => UI conflicts) -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/js/bootstrap.bundle.min.js"
+        integrity="sha384-MrcW6ZMFYlzcLA8Nl+NtUVF0sA7MsXsP1UyJoMp4YLEuNSfAP+JcXn/tWtIaxVXM"
+        crossorigin="anonymous"></script>
+
+    <!-- Alpine.js is loaded here; initFw.js handles directive registration and starting -->
+    <!-- CRITICAL: Prevent Alpine CDN auto-start using a property setter trap.
+         Defer scripts run BEFORE DOMContentLoaded and BEFORE module scripts.
+         When Alpine's defer script loads, it assigns window.Alpine then calls start().
+         We intercept the assignment with defineProperty and immediately patch start(). -->
+    <script>
+        (function () {
+            let _alpine = null;
+            Object.defineProperty(window, 'Alpine', {
+                configurable: true,
+                get() { return _alpine; },
+                set(val) {
+                    _alpine = val;
+                    if (val && typeof val.start === 'function' && !window._alpineStartPatched) {
+                        window._alpineStartPatched = true;
+                        window._alpineRealStart = val.start.bind(val);
+                        val.start = function () {
+                            console.log('[alpine-patch] Auto-start intercepted, deferring to initFw.js');
+                        };
+                    }
+                }
+            });
+        })();
+    </script>
+    <script defer src="vendor/alpine/alpine.collapse.min.js"></script>
+    <script defer src="vendor/alpine/alpine.min.js"></script>
+    <script type="module" src="js/initFw.js"></script>
+
+    <script src="vendor/ace-min/ace.js"></script>
+    <link href="vendor/ace/ace.min.css" rel="stylesheet">
+    <!-- KaTeX CSS -->
+    <link rel="stylesheet" href="vendor/katex/katex.min.css" crossorigin="anonymous">
+
+    <!-- KaTeX javascript -->
+    <script defer src="vendor/katex/katex.min.js" crossorigin="anonymous"></script>
+    <script defer src="vendor/katex/katex.auto-render.min.js" crossorigin="anonymous"></script>
+
+    <!-- QR Code Library -->
+    <script src="vendor/qrcode.min.js"></script>
+
+    <!-- Mermaid diagram library -->
+    <script src="vendor/mermaid/mermaid.min.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            if (globalThis.mermaid) {
+                mermaid.initialize({
+                    startOnLoad: false,
+                    theme: document.body.classList.contains('light-mode') ? 'default' : 'dark',
+                    securityLevel: 'loose',
+                    flowchart: { useMaxWidth: true, htmlLabels: true, curve: 'basis' }
+                });
+            }
+        });
+    </script>
+
+    <!-- Google Icons -->
+    <link rel="stylesheet" href="vendor/google/google-icons.css" />
+
+    <!-- ECharts - Interactive charting library for A2UI chart components (self-hosted) -->
+    <script src="vendor/echarts/echarts.min.js"></script>
+
+    <!-- Link the PWA manifest file -->
+    <link rel="manifest" href="js/manifest.json">
+
+    <!-- Non-module scripts after Alpine.js -->
+    <!-- settings.js is now imported from initFw.js before Alpine loads -->
+    <script src="js/components/kvp-editor.js"></script>
+    <script>
+        // Expose git info for sidebar component
+        globalThis.gitinfo = { version: "{{version_no}}", commit_time: "{{version_time}}", commit_hash: "{{version_hash}}" };
+    </script>
+</head>
+
+<body class="device-pointer light-mode" x-data>
+    <!-- Startup / Initialization Overlay -->
+    <x-component path="startup/startup-overlay.html"></x-component>
+
+
+    <div class="container">
+        <!-- External Hamburger Menu (Visible when sidebar is collapsed) -->
+        <button class="external-hamburger" x-show="!$store.sidebar.isOpen" @click="$store.sidebar.toggle()"
+            x-transition:enter="transition ease-out duration-200" x-transition:enter-start="opacity-0 scale-90"
+            x-transition:enter-end="opacity-100 scale-100">
+            <span class="icon material-symbols-outlined" style="font-size: 24px; color: var(--color-text);">menu</span>
+        </button>
+
+        <!-- Sidebar Overlay -->
+        <div id="sidebar-overlay" x-data>
+            <template x-if="$store.sidebar">
+                <div class="sidebar-overlay" :class="{'visible': $store.sidebar.isOpen && $store.sidebar.isMobile()}"
+                    @click="$store.sidebar.close()"></div>
+            </template>
+        </div>
+        </template>
+        <!-- Left Sidebar (Header Icons, Quick Actions, Tabs, Chats, Tasks) -->
+        <x-component path="sidebar/left-sidebar.html"></x-component>
+
+        <!-- Right Panel (Message History and Input Section) -->
+        <div id="right-panel" class="panel">
+
+            <!-- top section with time, status etc. -->
+            <x-component path="chat/top-section/chat-top.html"></x-component>
+
+            <!-- Welcome Screen Component -->
+            <div x-data x-show="$store.welcomeStore && $store.welcomeStore.isVisible">
+                <x-component path="welcome/welcome-screen.html"></x-component>
+            </div>
+            <!-- Message History (actual messages) -->
+            <div id="chat-history" x-data x-show="!$store.welcomeStore || !$store.welcomeStore.isVisible"></div>
+            <x-component path="chat/scroll-buttons/scroll-buttons.html"></x-component>
+
+            <!-- NEW: Toast Stack Component -->
+            <div style="position: relative; height: 0;">
+                <x-component path="notifications/notification-toast-stack.html"></x-component>
+            </div>
+
+            <div id="toast" class="toast">
+                <div class="toast__content">
+                    <div class="toast__title"></div>
+                    <div class="toast__separator"></div>
+                    <div class="toast__message"></div>
+                </div>
+                <button class="toast__copy" style="display: none;">Copy</button>
+                <button class="toast__close">Close</button>
+            </div>
+            <!-- Chat Input Area -->
+            <div x-show="!$store.welcomeStore || !$store.welcomeStore.isVisible">
+                <!-- Progress Bar -->
+                <x-component path="chat/input/progress.html"></x-component>
+                <!-- Input Section -->
+                <x-component path="chat/input/chat-bar.html"></x-component>
+            </div>
+        </div>
+    </div>
+    <div id="settingsModal" x-data="settingsModal">
+        <div x-show="isOpen" class="modal-overlay" @click.self="handleButton('cancel')"
+            @keydown.escape.window="isOpen && handleButton('cancel')" x-transition>
+            <div class="modal-container" style="position: relative;">
+                <div class="modal-header">
+                    <h2 x-text="settings.title"></h2>
+                    <button class="modal-close" @click="handleButton('cancel')">
+                        <span class="material-symbols-outlined">close</span>
+                    </button>
+                </div>
+
+                <div class="modal-content">
+                    <!-- Tab Navigation -->
+                    <div class="settings-tabs-container">
+                        <div class="settings-tabs">
+                            <div class="settings-tab" :class="{'active': activeTab === 'agent'}"
+                                @click="switchTab('agent')"
+                                data-tooltip="Configure global agent models, profiles, and memory settings.">Agent
+                                Settings</div>
+                            <div class="settings-tab" :class="{'active': activeTab === 'external'}"
+                                @click="switchTab('external')"
+                                x-show="$store.settings && $store.settings.external_enabled"
+                                data-tooltip="Manage external APIs, secrets, and connectivity tools.">External
+                                Services</div>
+                            <div class="settings-tab" :class="{'active': activeTab === 'mcp'}" @click="switchTab('mcp')"
+                                x-show="$store.settings && $store.settings.mcp_enabled"
+                                data-tooltip="Configure MCP servers and A2A inter-agent communication.">MCP/A2A
+                            </div>
+                            <div class="settings-tab" :class="{'active': activeTab === 'developer'}"
+                                x-show="$store.settings && $store.settings.developer_tab_enabled && !isMobile" @click="switchTab('developer')"
+                                data-tooltip="Advanced developer tools, RFCs, and framework parameters.">Developer
+                            </div>
+                            <div class="settings-tab" :class="{'active': activeTab === 'scheduler'}"
+                                @click="switchTab('scheduler')"
+                                x-show="$store.settings && $store.settings.scheduler_enabled"
+                                data-tooltip="Schedule recurring tasks and automated agent workflows.">Task
+                                Scheduler</div>
+                            <div class="settings-tab" :class="{'active': activeTab === 'projects'}"
+                                x-show="$store.settings && $store.settings.projects_enabled"
+                                @click="switchTab('projects'); $store.projects.loadProjectsList()"
+                                data-tooltip="Create and manage isolated project workspaces.">
+                                Projects</div>
+                            <div class="settings-tab" :class="{'active': activeTab === 'backup'}"
+                                x-show="$store.settings && $store.settings.backup_enabled"
+                                @click="switchTab('backup')" data-tooltip="Backup your settings and conversation data.">
+                                Backup & Restore</div>
+                            <div class="settings-tab" :class="{'active': activeTab === 'oauth'}"
+                                @click="switchTab('oauth')"
+                                x-show="$store.settings && $store.settings.oauth_enabled"
+                                data-tooltip="Manage external service connections using OAuth 2.0.">OAuth</div>
+                            <div class="settings-tab" :class="{'active': activeTab === 'history'}"
+                                @click="switchTab('history')"
+                                x-show="$store.settings && $store.settings.history_enabled"
+                                data-tooltip="Browse and manage your chat history and stored memories.">History
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Display settings sections for agent, external, developer, mcp, backup tabs -->
+                    <div id="settings-sections"
+                        x-show="activeTab !== 'scheduler' && activeTab !== 'projects' && activeTab !== 'history'">
+                        <nav>
+                            <ul>
+                                <template x-for="(section, index) in filteredSections" :key="section.title">
+                                    <li>
+                                        <a :href="'#section' + (index + 1)">
+                                            <img :src="'public/' + section.id + '.svg'" :alt="section.title">
+                                            <span x-text="section.title"></span>
+                                        </a>
+                                    </li>
+                                </template>
+                                <!-- Tunnel navigation entry - only visible in the External Services tab -->
+                                <li x-show="activeTab === 'external' && !isProduction && !isMobile">
+                                    <a href="#section-tunnel">
+                                        <img src="public/tunnel.svg" alt="Tunnel">
+                                        <span>Flare Tunnel</span>
+                                    </a>
+                                </li>
+                            </ul>
+                        </nav>
+
+                        <template x-for="(section, sectionIndex) in filteredSections" :key="sectionIndex">
+                            <div :id="'section' + (sectionIndex + 1)" class="section">
+                                <div class="section-title" x-text="section.title"></div>
+                                <div class="section-description" x-html="section.description"></div>
+
+                                <template x-for="(field, fieldIndex) in section.fields.filter(f => !f.hidden)"
+                                    :key="fieldIndex">
+                                    <div :class="{'field': true, 'field-full': field.type === 'textarea'}">
+                                        <div class="field-label" x-show="field.title || field.description">
+                                            <div class="field-title" x-text="field.title" x-show="field.title"
+                                                :data-tooltip="field.description ? `${field.title}: ${field.description}` : field.title">
+                                            </div>
+                                            <div class="field-description" x-html="field.description || ''"
+                                                x-show="field.description"></div>
+                                        </div>
+
+                                        <div class="field-control">
+                                            <!-- Input field -->
+                                            <!-- Input field (Regular) -->
+                                            <template x-if="field.type === 'text' && !isSensitiveKey(field)">
+                                                <input type="text" :class="field.classes" :value="field.value"
+                                                    :readonly="field.readonly === true" :data-tooltip="field.title"
+                                                    @input="field.value = $event.target.value">
+                                            </template>
+
+                                            <!-- Number field -->
+                                            <template x-if="field.type === 'number'">
+                                                <input type="number" :class="field.classes" :value="field.value"
+                                                    :readonly="field.readonly === true"
+                                                    @input="field.value = $event.target.value" :min="field.min"
+                                                    :max="field.max" :step="field.step">
+                                            </template>
+
+
+                                            <!-- Password field -->
+                                            <!-- Password field or Sensitive Text field -->
+                                            <template
+                                                x-if="field.type === 'password' || (field.type === 'text' && isSensitiveKey(field))">
+                                                <div class="password-toggle-container">
+                                                    <input :type="field.showPassword ? 'text' : 'password'"
+                                                        :class="field.classes" :value="field.value"
+                                                        :readonly="field.readonly === true" :id="field.id"
+                                                        autocomplete="off" @input="field.value = $event.target.value">
+                                                    <button type="button" class="btn btn-ghost password-toggle-btn"
+                                                        @click="field.showPassword = !field.showPassword"
+                                                        :title="field.showPassword ? 'Hide sensitive info' : 'Show sensitive info'">
+                                                        <span class="material-symbols-outlined"
+                                                            x-text="field.showPassword ? 'visibility_off' : 'visibility'"></span>
+                                                    </button>
+                                                </div>
+                                            </template>
+
+                                            <!-- Textarea field -->
+                                            <template x-if="field.type === 'textarea'">
+                                                <textarea :class="field.classes" :value="field.value"
+                                                    :readonly="field.readonly === true"
+                                                    @input="field.value = $event.target.value"
+                                                    :style="field.style"></textarea>
+                                            </template>
+
+                                            <!-- Switch field -->
+                                            <template x-if="field.type === 'switch'">
+                                                <label class="toggle" :data-tooltip="field.title">
+                                                    <input type="checkbox" :checked="field.value"
+                                                        :disabled="field.readonly === true"
+                                                        @change="field.value = $event.target.checked">
+                                                    <span class="toggler"></span>
+                                                </label>
+                                            </template>
+
+                                            <!-- Range field -->
+                                            <template x-if="field.type === 'range'">
+                                                <div class="field-control">
+                                                    <input type="range" :min="field.min" :max="field.max"
+                                                        :step="field.step" :value="field.value"
+                                                        :disabled="field.readonly === true"
+                                                        @input="field.value = $event.target.value"
+                                                        :class="field.classes">
+                                                    <span class="range-value" x-text="field.value"></span>
+                                                </div>
+                                            </template>
+
+                                            <!-- Button field -->
+                                            <template x-if="field.type === 'button'">
+                                                <button class="btn btn-field" :class="field.classes"
+                                                    :disabled="field.readonly === true"
+                                                    @click="handleFieldButton(field)" x-text="field.value"></button>
+                                            </template>
+
+                                            <!-- Searchable Select field -->
+                                            <template x-if="field.type === 'searchable-select'">
+                                                <div class="searchable-select-container"
+                                                    @click.away="field.isDropdownOpen = false">
+                                                    <!-- Selection input -->
+                                                    <div class="searchable-select-input"
+                                                        @click="field.isDropdownOpen = !field.isDropdownOpen">
+                                                        <input type="text" x-model="field.searchQuery"
+                                                            :placeholder="field.options.find(o => o.value === field.value)?.label || 'Select...'"
+                                                            :disabled="field.readonly === true"
+                                                            @input="field.isDropdownOpen = true">
+                                                        <span class="icon i-tabler-chevron-down"
+                                                            :class="{'rotated': field.isDropdownOpen}"></span>
+                                                    </div>
+
+                                                    <!-- Dropdown -->
+                                                    <div class="searchable-select-dropdown"
+                                                        x-show="field.isDropdownOpen" x-cloak>
+                                                        <div class="searchable-select-options">
+                                                            <template
+                                                                x-for="option in field.options.filter(o => !field.searchQuery || o.label.toLowerCase().includes(field.searchQuery.toLowerCase()))"
+                                                                :key="option.value">
+                                                                <div class="searchable-select-option"
+                                                                    :class="{'selected': option.value === field.value}"
+                                                                    @click="field.value = option.value; field.searchQuery = ''; field.isDropdownOpen = false"
+                                                                    x-text="option.label">
+                                                                </div>
+                                                            </template>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </template>
+
+                                            <!-- Select field -->
+                                            <template x-if="field.type === 'select'">
+                                                <select :class="field.classes" x-model="field.value"
+                                                    :disabled="field.readonly === true">
+                                                    <template x-for="option in field.options" :key="option.value">
+                                                        <option :value="option.value" x-text="option.label"
+                                                            :selected="option.value === field.value"></option>
+                                                    </template>
+                                                </select>
+                                            </template>
+
+                                            <!-- HTML field -->
+                                            <template x-if="field.type === 'html'">
+                                                <div :class="field.classes" x-html="field.value"></div>
+                                            </template>
+
+                                            <!-- KVP field -->
+                                            <template x-if="field.type === 'kvp'">
+                                                <div class="kvp-editor"
+                                                    x-data="kvpEditor({ field: field, format: field.format, isSecret: field.isSecret })">
+                                                    <div class="kvp-header">
+                                                        <div class="kvp-view-toggle">
+                                                            <button class="kvp-view-btn"
+                                                                :class="{'active': view === 'list'}"
+                                                                @click="view = 'list'">List</button>
+                                                            <button class="kvp-view-btn"
+                                                                :class="{'active': view === 'raw'}"
+                                                                @click="view = 'raw'">Raw</button>
+                                                        </div>
+                                                    </div>
+
+                                                    <!-- List View -->
+                                                    <div x-show="view === 'list'" class="kvp-list">
+                                                        <template x-for="(item, index) in items" :key="index">
+                                                            <div class="kvp-row">
+                                                                <div class="kvp-key">
+                                                                    <input type="text" x-model="item.key"
+                                                                        placeholder="Key" @input="onItemChange()">
+                                                                </div>
+                                                                <div class="kvp-value-wrapper">
+                                                                    <input
+                                                                        :type="(isSecret || isSensitiveKey(item.key)) && !showSecrets[index] ? 'password' : 'text'"
+                                                                        x-model="item.value" placeholder="Value"
+                                                                        @input="onItemChange()">
+                                                                    <template
+                                                                        x-if="isSecret || isSensitiveKey(item.key)">
+                                                                        <button type="button"
+                                                                            class="kvp-btn-show-password"
+                                                                            @click="toggleSecretVisibility(index)">
+                                                                            <span class="material-symbols-outlined"
+                                                                                x-text="showSecrets[index] ? 'visibility_off' : 'visibility'"></span>
+                                                                        </button>
+                                                                    </template>
+                                                                </div>
+                                                                <button type="button" class="kvp-btn-remove"
+                                                                    @click="removeItem(index)">
+                                                                    <span
+                                                                        class="material-symbols-outlined">delete</span>
+                                                                </button>
+                                                            </div>
+                                                        </template>
+                                                        <template x-if="items.length === 0">
+                                                            <div class="kvp-empty-message">No items yet. Click the
+                                                                button below to add one.</div>
+                                                        </template>
+                                                        <button type="button" class="btn btn-secondary kvp-btn-add"
+                                                            @click="addItem()">
+                                                            <span class="material-symbols-outlined">add</span> Add
+                                                            Item
+                                                        </button>
+                                                    </div>
+
+                                                    <!-- Raw View -->
+                                                    <div x-show="view === 'raw'" class="kvp-raw-view">
+                                                        <textarea :class="field.classes" x-model="field.value"
+                                                            :style="field.style" @input="parseRaw()"></textarea>
+                                                    </div>
+                                                </div>
+                                            </template>
+                                        </div>
+                                    </div>
+                                </template>
+                            </div>
+                        </template>
+
+                        <!-- Tunnel section content - only visible in External Services tab -->
+                        <div id="section-tunnel" class="section"
+                            x-show="activeTab === 'external' && !isProduction && !isMobile">
+                            <x-component path="settings/tunnel/tunnel-section.html" />
+                        </div>
+
+                    </div>
+
+                    <!-- History Tab Content -->
+                    <div id="history-tab-content" x-show="activeTab === 'history'" x-cloak>
+                        <x-component path="settings/history/history-settings-tab.html" />
+                    </div>
+
+
+                    <!-- Projects Tab Content -->
+                    <x-component path="settings/projects/projects-tab.html"></x-component>
+
+
+                    <!-- Task Scheduler Tab Content -->
+                    <x-component path="settings/scheduler/task-scheduler-tab.html"></x-component>
+
+                </div>
+
+                <div class="modal-footer">
+                    <div id="buttons-container">
+                        <template x-for="button in settings.buttons" :key="button.id">
+                            <button :class="button.classes" @click="handleButton(button.id)"
+                                x-text="button.title"></button>
+                        </template>
+                    </div>
+                </div>
+                <x-component path="settings/scroll-buttons/settings-scroll-buttons.html"></x-component>
+            </div>
+        </div>
+
+    </div>
+
+    <!-- Drag and Drop Overlay Component -->
+    <x-component path="chat/attachments/dragDropOverlay.html"></x-component>
+
+    <!-- KVP Editor Component -->
+    <script src="js/components/kvp-editor.js"></script>
+
+    <!-- Register Service Worker for offline support and caching -->
+    <script>
+        if ('serviceWorker' in navigator) {
+            window.addEventListener('load', () => {
+                navigator.serviceWorker.register('js/sw.js').then(registration => {
+                    // console.log('SW registered: ', registration);
+                }).catch(registrationError => {
+                    if (registrationError.name === 'SecurityError') {
+                        console.warn('SW registration skipped due to security context (possible SSL issue in development)');
+                    } else {
+                        console.error('SW registration failed: ', registrationError);
+                    }
+                });
+            });
+        }
+    </script>
+
+    <!-- Global Hover Tooltips (Issue #236) -->
+    <div x-show="$store.tooltips?.show" x-cloak class="tooltip-bubble tooltip-animate"
+        :style="`left: ${$store.tooltips?.x}px; top: ${$store.tooltips?.y}px;`" x-text="$store.tooltips?.text">
+    </div>
+    <!-- Custom Confirmation Popover -->
+    <x-component path="shared/confirmation-popover.html"></x-component>
+</body>
+
+</html>

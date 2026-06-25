@@ -1,0 +1,1 @@
+do not rewrite long responses, use §§include(<project_file>) to reference files within the project directory instead!

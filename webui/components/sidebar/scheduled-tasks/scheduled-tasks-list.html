@@ -1,0 +1,321 @@
+<html>
+
+<head>
+  <script type="module">
+    import { store } from "./scheduled-tasks-store.js";
+  </script>
+</head>
+
+<body>
+  <div x-data>
+    <template x-if="$store.scheduledTasks">
+      <div class="scheduled-tasks-container">
+
+        <!-- Task List -->
+        <ul class="config-list scheduled-config-list" x-show="$store.scheduledTasks.hasTasks()">
+          <template x-for="task in $store.scheduledTasks.filteredTasks" :key="task.uuid">
+            <li class="scheduled-item" :class="[$store.scheduledTasks.getStateBadgeClass(task.state)]"
+              @click.stop="$store.scheduledTasks.openTaskChat(task)">
+              <div class="scheduled-container">
+
+                <!-- Type Icon -->
+                <span class="scheduled-type-icon" :title="task.type"
+                  x-text="$store.scheduledTasks.getTypeIcon(task.type)"></span>
+
+                <!-- Task Name (becomes chat name) -->
+                <span class="scheduled-name" :title="task.name + ' - Click to open chat'" x-text="task.name"></span>
+
+                <!-- Human Frequency -->
+                <span class="scheduled-frequency" x-text="$store.scheduledTasks.formatSchedule(task)"></span>
+
+                <!-- State Badge (click to toggle enabled/disabled) -->
+                <span class="scheduled-state-badge clickable"
+                  :class="$store.scheduledTasks.getStateBadgeClass(task.state)"
+                  @click.stop="$store.scheduledTasks.toggleTaskState(task.uuid)"
+                  :title="task.state === 'disabled' ? 'Click to enable' : 'Click to disable'"
+                  x-text="task.state === 'idle' ? 'Manual' : (task.state === 'running' && task.last_run ? task.state + ' (' + $store.scheduledTasks.getUptimeMinutes(task.last_run) + 'm)' : task.state)">
+                </span>
+
+                <!-- Action Buttons -->
+                <button class="icon-btn" @click.stop="$store.scheduledTasks.runTask(task.uuid)" title="Run Task">
+                  <span class="material-symbols-outlined">play_arrow</span>
+                </button>
+                <button class="icon-btn" x-show="task.state === 'error'"
+                  @click.stop="$store.scheduledTasks.resetTaskState(task.uuid)" title="Reset State">
+                  <span class="material-symbols-outlined">restart_alt</span>
+                </button>
+              </div>
+            </li>
+          </template>
+        </ul>
+
+        <!-- Empty State -->
+        <div class="empty-list-message" x-show="!$store.scheduledTasks.hasTasks() && !$store.scheduledTasks.isLoading">
+          <p><i>No scheduled tasks.</i></p>
+        </div>
+
+        <!-- Loading State -->
+        <div class="loading-message" x-show="$store.scheduledTasks.isLoading">
+          <p><i>Loading scheduled tasks...</i></p>
+        </div>
+
+      </div>
+    </template>
+  </div>
+
+  <style>
+    /* Scheduled Tasks container */
+    .scheduled-tasks-container {
+      display: flex;
+      flex-direction: column;
+      min-height: 0;
+      border-top: 1px solid var(--color-border);
+    }
+
+    /* Task List */
+    .scheduled-config-list {
+      flex: 1;
+      min-height: 0;
+      overflow-y: auto;
+      scroll-behavior: smooth;
+      scrollbar-width: thin;
+      padding: 0;
+      margin: 0;
+      list-style: none;
+    }
+
+    .scheduled-config-list::-webkit-scrollbar {
+      width: 4px;
+    }
+
+    .scheduled-config-list::-webkit-scrollbar-thumb {
+      background-color: var(--color-border);
+      border-radius: 2px;
+    }
+
+    /* Scheduled Item */
+    .scheduled-item {
+      position: relative;
+      display: flex;
+      flex-direction: column;
+      min-height: 48px;
+      padding: 8px 16px 8px 12px;
+      margin: 4px 12px 4px 0;
+      border-radius: var(--border-radius-md);
+      transition: all 0.2s ease;
+      cursor: pointer;
+      box-sizing: border-box;
+      justify-content: center;
+      box-shadow: none;
+    }
+
+    .scheduled-item:hover {
+      background-color: var(--color-background-hover);
+      box-shadow: var(--shadow-sm);
+      transform: translateX(4px);
+    }
+
+    .scheduled-container {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      width: 100%;
+      overflow: hidden;
+    }
+
+    .scheduled-type-icon {
+      flex-shrink: 0;
+      font-size: 1rem;
+      opacity: 0.9;
+    }
+
+    .scheduled-name {
+      flex: 1;
+      font-size: var(--font-size-small);
+      color: var(--color-text);
+      font-weight: 500;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    /* State Badge */
+    .scheduled-state-badge {
+      font-size: 0.6rem;
+      padding: 0px 5px;
+      border-radius: 10px;
+      text-transform: uppercase;
+      font-weight: 700;
+      flex-shrink: 0;
+      letter-spacing: 0.02em;
+      border: 1px solid transparent;
+      line-height: 1.4;
+    }
+
+    .scheduled-state-badge.clickable {
+      cursor: pointer;
+      transition: transform 0.1s ease;
+    }
+
+    .scheduled-state-badge.clickable:hover {
+      transform: scale(1.05);
+      filter: brightness(1.1);
+    }
+
+    .scheduled-state-badge.clickable:active {
+      transform: scale(0.95);
+    }
+
+    /* Human Frequency Tag */
+    .scheduled-frequency {
+      font-size: 0.65rem;
+      color: var(--color-muted-foreground);
+      background-color: var(--color-background-hover);
+      padding: 1px 5px;
+      border-radius: 4px;
+      font-weight: 500;
+      flex-shrink: 0;
+      opacity: 0.8;
+      font-family: var(--font-mono, monospace);
+    }
+
+    .scheduled-status-idle {
+      background-color: transparent;
+      border-color: var(--color-border);
+      color: var(--color-muted-foreground);
+      opacity: 0.7;
+    }
+
+    .scheduled-status-running {
+      background-color: rgba(40, 167, 69, 0.2);
+      color: var(--color-success, #28a745);
+      border-color: rgba(40, 167, 69, 0.3);
+    }
+
+    .scheduled-status-disabled {
+      background-color: var(--color-border);
+      color: var(--color-muted-foreground);
+      opacity: 0.6;
+    }
+
+    .scheduled-status-error {
+      background-color: rgba(220, 53, 69, 0.2);
+      color: var(--color-error, #dc3545);
+      border-color: rgba(220, 53, 69, 0.3);
+    }
+
+    /* Reset Button */
+    .scheduled-reset-btn {
+      background: none;
+      border: none;
+      padding: 2px;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      border-radius: 4px;
+      transition: background-color 0.2s;
+      flex-shrink: 0;
+      margin-left: -2px;
+    }
+
+    .scheduled-reset-btn:hover {
+      background-color: rgba(255, 255, 255, 0.1);
+    }
+
+    .reset-icon {
+      font-size: 0.8rem;
+      filter: grayscale(1) brightness(1.5);
+    }
+
+    .scheduled-item.scheduled-status-error .reset-icon {
+      filter: none;
+    }
+
+    /* Run Button */
+    .scheduled-run-btn {
+      background: none;
+      border: none;
+      padding: 2px;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      border-radius: 4px;
+      transition: background-color 0.2s;
+      flex-shrink: 0;
+      margin-left: -2px;
+    }
+
+    .scheduled-run-btn:hover {
+      background-color: rgba(255, 255, 255, 0.1);
+    }
+
+    .run-icon {
+      font-size: 0.7rem;
+      color: var(--color-success, #28a745);
+      opacity: 0.7;
+      transition: opacity 0.2s;
+    }
+
+    .scheduled-run-btn:hover .run-icon {
+      opacity: 1;
+    }
+
+    /* Empty/Loading States */
+    .scheduled-tasks-container .empty-list-message,
+    .scheduled-tasks-container .loading-message {
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      padding: 1.5rem 1rem;
+      color: var(--color-muted-foreground);
+      text-align: center;
+      font-style: italic;
+      font-size: var(--font-size-small);
+      gap: 0.75rem;
+    }
+
+    .btn-create-task {
+      padding: 6px 16px;
+      font-size: var(--font-size-small);
+      border: 1px solid var(--color-accent-dark);
+      border-radius: var(--border-radius-md);
+      background-color: var(--color-accent-dark);
+      color: #ffffff;
+      cursor: pointer;
+      transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+      font-weight: 600;
+      box-shadow: var(--shadow-sm);
+    }
+
+    .btn-create-task:hover {
+      background-color: #d18b52;
+      border-color: #d18b52;
+      box-shadow: var(--shadow-accent);
+      transform: translateY(-1px);
+    }
+
+    /* Pulse for running tasks */
+    .scheduled-item.scheduled-status-running .scheduled-state-badge {
+      animation: pulse-running 2s infinite;
+    }
+
+    @keyframes pulse-running {
+      0% {
+        opacity: 1;
+      }
+
+      50% {
+        opacity: 0.6;
+      }
+
+      100% {
+        opacity: 1;
+      }
+    }
+  </style>
+</body>
+
+</html>

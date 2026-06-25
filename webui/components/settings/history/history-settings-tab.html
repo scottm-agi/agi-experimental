@@ -1,0 +1,241 @@
+<nav>
+    <ul>
+        <li>
+            <a href="#section-chat-history">
+                <img src="public/memory.svg" alt="History">
+                <span>Chat History</span>
+            </a>
+        </li>
+        <li>
+            <a href="#section-common-prompts">
+                <img src="public/brain.svg" alt="Prompts">
+                <span>Common Prompts</span>
+            </a>
+        </li>
+    </ul>
+</nav>
+
+<div id="section-chat-history" class="section" x-data="historySettings" x-init="init()">
+    <div class="section-title">Chat History Management</div>
+    <div class="section-description">View and manage all your chat sessions. You can delete items individually or in
+        bulk.</div>
+
+    <div class="history-controls">
+        <div class="search-box"><input type="text" x-model="searchQuery"
+                placeholder="Search chats by title or summary..." class="input-field"></div>
+    </div>
+
+    <div class="history-list-container">
+        <template x-if="loading">
+            <div class="loading-state">
+                <span class="material-symbols-outlined spin">sync</span> Loading chat history...
+            </div>
+        </template>
+
+        <template x-if="!loading && filteredChats.length === 0">
+            <div class="empty-state">
+                No chats found.
+            </div>
+        </template>
+
+        <template x-if="!loading && filteredChats.length > 0">
+            <table class="settings-table">
+                <thead>
+                    <tr>
+                        <th width="40"><input type="checkbox" :checked="allSelected" @change="selectAll()"></th>
+                        <th @click="sortBy('name')" style="cursor:pointer">
+                            Chat Title
+                            <span class="scheduler-sort-indicator" x-show="sortField === 'name'"
+                                :class="{'scheduler-sort-desc': sortDirection === 'desc'}">▲</span>
+                        </th>
+                        <th width="150" class="hide-mobile" @click="sortBy('updated_at')" style="cursor:pointer">
+                            Last Active
+                            <span class="scheduler-sort-indicator" x-show="sortField === 'updated_at'"
+                                :class="{'scheduler-sort-desc': sortDirection === 'desc'}">▲</span>
+                        </th>
+                        <th width="100">Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <template x-for="chat in filteredChats" :key="chat.ctxid">
+                        <tr :class="{'selected': selectedChats.has(chat.ctxid)}">
+                            <td>
+                                <input type="checkbox" :checked="selectedChats.has(chat.ctxid)"
+                                    @change="toggleSelect(chat.ctxid)">
+                            </td>
+                            <td>
+                                <div class="chat-info">
+                                    <span class="chat-title" x-text="chat.name || 'Untitled Chat'"></span>
+                                    <span class="chat-ctxid hide-mobile" x-text="chat.ctxid"></span>
+                                </div>
+                            </td>
+                            <td x-text="formatDate(chat.updated_at)" class="hide-mobile"></td>
+                            <td>
+                                <button class="btn btn-icon text-danger" @click="deleteSingle(chat.ctxid)"
+                                    title="Delete chat" :disabled="deleting">
+                                    <span class="material-symbols-outlined">delete</span>
+                                </button>
+                            </td>
+                        </tr>
+                    </template>
+                </tbody>
+            </table>
+        </template>
+    </div>
+
+    <!-- Floating Action Bar for Mass Deletion -->
+    <template x-if="selectedChats.size > 0">
+        <div class="floating-mass-action-bar" x-cloak>
+            <div class="selection-count">
+                <span x-text="selectedChats.size"></span> chats selected
+            </div>
+            <button class="btn btn-danger" @click="deleteSelected()" :disabled="deleting">
+                <span class="material-symbols-outlined">delete</span>
+                Delete Selected
+            </button>
+            <button class="btn btn-ghost" @click="selectedChats.clear()" title="Clear selection">
+                <span class="material-symbols-outlined">close</span>
+            </button>
+        </div>
+    </template>
+</div>
+
+<div id="section-common-prompts" class="section" x-data="commonPromptsSettings" x-init="init()">
+    <div class="section-title">Common Prompts Management</div>
+    <div class="section-description">Manage your saved high-quality prompts. These are used to guide agent behavior and
+        provide consistent results.</div>
+
+    <div class="prompts-controls">
+        <div class="search-box"><input type="text" x-model="searchQuery"
+                placeholder="Search prompts by content or filename..." class="input-field"></div>
+    </div>
+
+    <div class="prompts-list-container">
+        <template x-if="loading">
+            <div class="loading-state">
+                <span class="material-symbols-outlined spin">sync</span> Loading common prompts...
+            </div>
+        </template>
+
+        <template x-if="!loading && filteredPrompts.length === 0">
+            <div class="empty-state">
+                No common prompts found.
+            </div>
+        </template>
+
+        <template x-if="!loading && filteredPrompts.length > 0">
+            <table class="settings-table">
+                <thead>
+                    <tr>
+                        <th width="40"><input type="checkbox" :checked="allSelected" @change="selectAll()"></th>
+                        <th>Prompt Content</th>
+                        <th width="150" class="hide-mobile">Saved Date</th>
+                        <th width="100">Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <template x-for="p in filteredPrompts" :key="p.filename">
+                        <tr :class="{'selected': selectedPrompts.has(p.filename)}">
+                            <td>
+                                <input type="checkbox" :checked="selectedPrompts.has(p.filename)"
+                                    @change="toggleSelect(p.filename)">
+                            </td>
+                            <td>
+                                <div class="prompt-info">
+                                    <span class="prompt-text" x-text="truncate(p.prompt, 150)"></span>
+                                    <span class="prompt-filename hide-mobile" x-text="p.filename"></span>
+                                </div>
+                            </td>
+                            <td x-text="formatDate(p.updated_at)" class="hide-mobile"></td>
+                            <td>
+                                <button class="btn btn-icon text-danger" @click="deleteSingle(p.prompt)"
+                                    title="Delete common prompt">
+                                    <span class="material-symbols-outlined">delete</span>
+                                </button>
+                            </td>
+                        </tr>
+                    </template>
+                </tbody>
+            </table>
+        </template>
+    </div>
+
+    <template x-if="selectedPrompts.size > 0">
+        <div class="floating-mass-action-bar" x-cloak>
+            <div class="selection-count">
+                <span x-text="selectedPrompts.size"></span> prompts selected
+            </div>
+            <button class="btn btn-danger" @click="deleteSelected()">
+                <span class="material-symbols-outlined">delete</span>
+                Delete Selected
+            </button>
+            <button class="btn btn-ghost" @click="selectedPrompts.clear()" title="Clear selection">
+                <span class="material-symbols-outlined">close</span>
+            </button>
+        </div>
+    </template>
+</div>
+
+<style>
+    .history-controls,
+    .prompts-controls {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 1.5rem;
+        gap: 1rem;
+    }
+
+    .search-box {
+        flex: 1;
+    }
+
+    .bulk-actions {
+        display: flex;
+        gap: 0.5rem;
+    }
+
+    .history-list-container,
+    .prompts-list-container {
+        background: var(--bg-secondary);
+        border-radius: 8px;
+        border: 1px solid var(--border-color);
+        max-height: 400px;
+        overflow-y: auto;
+    }
+
+    .chat-info,
+    .prompt-info {
+        display: flex;
+        flex-direction: column;
+    }
+
+    .chat-title,
+    .prompt-text {
+        font-weight: 500;
+    }
+
+    .prompt-text {
+        white-space: pre-wrap;
+        word-break: break-word;
+        font-size: 0.9rem;
+    }
+
+    .chat-ctxid,
+    .prompt-filename {
+        font-size: 0.75rem;
+        color: var(--text-muted);
+    }
+
+    .prompt-filename {
+        font-family: monospace;
+        margin-top: 4px;
+    }
+
+    .loading-state,
+    .empty-state {
+        padding: 3rem;
+        text-align: center;
+        color: var(--text-muted);
+    }
+</style>

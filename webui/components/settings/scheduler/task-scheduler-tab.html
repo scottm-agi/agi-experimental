@@ -1,0 +1,1114 @@
+                    <div id="scheduler-tab-content" x-show="activeTab === 'scheduler'" x-cloak>
+                        <!-- Settings section structure for task scheduler -->
+                        <nav>
+                            <ul>
+                                <li>
+                                    <a href="#section-task-scheduler">
+                                        <img src="public/task_scheduler.svg" alt="Task Scheduler">
+                                        <span>Task Scheduler</span>
+                                    </a>
+                                </li>
+                            </ul>
+                        </nav>
+
+                        <div id="section-task-scheduler" class="section" x-data="schedulerSettings">
+                            <div class="section-title">Task Scheduler</div>
+                            <div class="section-description">Manage scheduled tasks and automated processes for
+                                AGIX.</div>
+
+                            <!-- Create Task Form -->
+                            <div class="scheduler-form" x-show="isCreating">
+                                <div class="scheduler-form-header">
+                                    <div class="scheduler-form-title">Create New Task</div>
+                                    <div class="scheduler-form-actions">
+                                        <button class="btn btn-ok" @click="saveTask()">
+                                            Save
+                                        </button>
+                                        <button class="btn btn-primary" x-show="editingTask.uuid"
+                                            @click="runTask(editingTask.uuid)">
+                                            <span class="material-symbols-outlined">play_circle</span> Run Now
+                                        </button>
+                                        <button class="btn btn-cancel" @click="cancelEdit()">
+                                            Cancel
+                                        </button>
+                                    </div>
+                                </div>
+
+                                <div class="scheduler-form-grid">
+                                    <!-- Task Name -->
+                                    <div class="scheduler-form-field">
+                                        <div class="label-help-wrapper">
+                                            <label class="scheduler-form-label">Task Name</label>
+                                            <div class="scheduler-form-help">A unique name to identify this task
+                                            </div>
+                                        </div>
+                                        <input type="text" x-model="editingTask.name" placeholder="Enter task name">
+                                    </div>
+
+                                    <!-- Task Type Selection -->
+                                    <div class="scheduler-form-field">
+                                        <div class="label-help-wrapper">
+                                            <label class="scheduler-form-label">Type</label>
+                                            <div class="scheduler-form-help">Task execution method</div>
+                                        </div>
+                                        <div class="searchable-select-container"
+                                            x-data="{ isDropdownOpen: false, searchQuery: '' }"
+                                            @click.away="isDropdownOpen = false">
+                                            <div class="searchable-select-input"
+                                                @click="isDropdownOpen = !isDropdownOpen">
+                                                <input type="text" x-model="searchQuery"
+                                                    :placeholder="({'scheduled': 'Scheduled (Cron)', 'adhoc': 'Ad-hoc (Manual)', 'planned': 'Planned (Specific Times)'})[editingTask.type] || 'Select type...'"
+                                                    @input="isDropdownOpen = true">
+                                                <span class="icon i-tabler-chevron-down"
+                                                    :class="{'rotated': isDropdownOpen}"></span>
+                                            </div>
+                                            <div class="searchable-select-dropdown" x-show="isDropdownOpen" x-cloak>
+                                                <div class="searchable-select-options">
+                                                    <template
+                                                        x-for="option in [
+                                                            {value: 'scheduled', label: 'Scheduled (Cron)'},
+                                                            {value: 'adhoc', label: 'Ad-hoc (Manual)'},
+                                                            {value: 'planned', label: 'Planned (Specific Times)'}
+                                                        ].filter(o => !searchQuery || o.label.toLowerCase().includes(searchQuery.toLowerCase()))"
+                                                        :key="option.value">
+                                                        <div class="searchable-select-option"
+                                                            :class="{'selected': option.value === editingTask.type}"
+                                                            @click="editingTask.type = option.value; searchQuery = ''; isDropdownOpen = false"
+                                                            x-text="option.label">
+                                                        </div>
+                                                    </template>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <div class="scheduler-form-field">
+                                        <div class="label-help-wrapper">
+                                            <label class="scheduler-form-label">Project</label>
+                                            <div class="scheduler-form-help"
+                                                x-text="editingTask.dedicated_context ? 'Inherited from the active chat project.' : 'Mirrors the shared context project.'">
+                                            </div>
+                                        </div>
+                                        <template x-if="isCreating">
+                                            <div class="scheduler-project-search-container"
+                                                @click.outside="closeProjectDropdown()">
+                                                <!-- Selected Project Display / Trigger -->
+                                                <div class="scheduler-project-search-input"
+                                                    @click="toggleProjectDropdown()">
+                                                    <span class="project-color-indicator"
+                                                        :style="editingTask.project?.color ? { backgroundColor: editingTask.project.color } : { border: '1px solid var(--color-border)' }">
+                                                    </span>
+                                                    <span class="scheduler-project-search-text"
+                                                        x-text="editingTask.project ? (editingTask.project.title || editingTask.project.name) : 'No project'"></span>
+                                                    <span
+                                                        class="icon material-symbols-outlined scheduler-project-chevron"
+                                                        x-bind:class="{ 'rotated': isProjectDropdownOpen }">
+                                                        expand_more
+                                                    </span>
+                                                </div>
+
+                                                <!-- Dropdown -->
+                                                <div class="scheduler-project-dropdown" x-show="isProjectDropdownOpen"
+                                                    x-transition.opacity>
+                                                    <!-- Search Input -->
+                                                    <div class="scheduler-project-filter-wrapper">
+                                                        <span
+                                                            class="icon material-symbols-outlined scheduler-project-search-icon">search</span>
+                                                        <input type="text" class="scheduler-project-filter-input"
+                                                            placeholder="Search projects..."
+                                                            x-model="projectSearchQuery" x-ref="projectSearchInput"
+                                                            @click.stop @keydown.escape="closeProjectDropdown()">
+                                                    </div>
+
+                                                    <hr class="scheduler-project-divider">
+
+                                                    <!-- No Project Option -->
+                                                    <div class="scheduler-project-item"
+                                                        :class="{ 'selected': !editingTask.project }"
+                                                        @click="selectProjectFromDropdown(null)">
+                                                        <span class="project-color-indicator"
+                                                            style="border: 1px solid var(--color-border);"></span>
+                                                        <span class="scheduler-project-item-text">No
+                                                            project</span>
+                                                        <span
+                                                            class="icon material-symbols-outlined scheduler-project-check"
+                                                            x-show="!editingTask.project">check</span>
+                                                    </div>
+
+                                                    <!-- Create New Project Option -->
+                                                    <div class="scheduler-project-item scheduler-project-create"
+                                                        @click="openCreateProjectModal()">
+                                                        <span class="material-symbols-outlined"
+                                                            style="font-size: 0.9em; color: var(--color-primary);">add</span>
+                                                        <span class="scheduler-project-item-text"
+                                                            style="color: var(--color-primary);">Create New
+                                                            Project</span>
+                                                    </div>
+
+                                                    <hr class="scheduler-project-divider"
+                                                        x-show="getFilteredProjectOptions().length > 0">
+
+                                                    <!-- Projects List -->
+                                                    <div class="scheduler-project-list">
+                                                        <template x-for="proj in getFilteredProjectOptions()"
+                                                            :key="proj.name">
+                                                            <div class="scheduler-project-item"
+                                                                :class="{ 'selected': editingTask.project && editingTask.project.name === proj.name }"
+                                                                @click="selectProjectFromDropdown(proj)">
+                                                                <span class="project-color-indicator"
+                                                                    :style="proj.color ? { backgroundColor: proj.color } : { border: '1px solid var(--color-border)' }">
+                                                                </span>
+                                                                <span class="scheduler-project-item-text"
+                                                                    x-text="proj.title || proj.name"></span>
+                                                                <span
+                                                                    class="icon material-symbols-outlined scheduler-project-check"
+                                                                    x-show="editingTask.project && editingTask.project.name === proj.name">check</span>
+                                                            </div>
+                                                        </template>
+                                                    </div>
+
+                                                    <!-- Empty State -->
+                                                    <div class="scheduler-project-empty"
+                                                        x-show="getFilteredProjectOptions().length === 0 && projectSearchQuery">
+                                                        <span class="scheduler-project-empty-text">No projects
+                                                            found</span>
+                                                    </div>
+
+                                                    <!-- No Projects State -->
+                                                    <div class="scheduler-project-empty"
+                                                        x-show="projectOptions.length === 0 && !projectSearchQuery">
+                                                        <span class="scheduler-project-empty-text">No projects
+                                                            created yet</span>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </template>
+                                        <template x-if="!isCreating">
+                                            <div class="project-display">
+                                                <span class="project-color-ball"
+                                                    :style="editingTask.project?.color ? { backgroundColor: editingTask.project.color } : { border: '1px solid var(--color-border)' }"></span>
+                                                <span x-text="formatProjectLabel(editingTask.project)"></span>
+                                            </div>
+                                        </template>
+                                    </div>
+
+                                    <!-- Task State in Create Form - Add after Task Type -->
+                                    <div class="scheduler-form-field" x-show="isCreating">
+                                        <div class="label-help-wrapper">
+                                            <label class="scheduler-form-label">State</label>
+                                            <div class="scheduler-form-help">Select the initial state of the
+                                                task
+                                            </div>
+                                        </div>
+                                        <div>
+                                            <div class="scheduler-state-selector">
+                                                <span class="scheduler-status-badge scheduler-status-idle"
+                                                    :class="{'scheduler-status-selected': editingTask.state === 'idle'}"
+                                                    @click="editingTask.state = 'idle'">Manual</span>
+                                                <span class="scheduler-status-badge scheduler-status-running"
+                                                    :class="{'scheduler-status-selected': editingTask.state === 'running'}"
+                                                    @click="editingTask.state = 'running'">running</span>
+                                                <span class="scheduler-status-badge scheduler-status-disabled"
+                                                    :class="{'scheduler-status-selected': editingTask.state === 'disabled'}"
+                                                    @click="editingTask.state = 'disabled'">disabled</span>
+                                                <span class="scheduler-status-badge scheduler-status-error"
+                                                    :class="{'scheduler-status-selected': editingTask.state === 'error'}"
+                                                    @click="editingTask.state = 'error'">error</span>
+                                            </div>
+                                            <div class="scheduler-state-explanation">
+                                                <span x-show="editingTask.state === 'idle'"><strong>Manual</strong>:
+                                                    ready to run</span>
+                                                <span x-show="editingTask.state === 'running'"><strong>running</strong>:
+                                                    currently executing</span>
+                                                <span
+                                                    x-show="editingTask.state === 'disabled'"><strong>disabled</strong>:
+                                                    won't execute automatically</span>
+                                                <span x-show="editingTask.state === 'error'"><strong>error</strong>:
+                                                    task encountered an error</span>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <!-- Schedule (only for scheduled tasks) -->
+                                    <div class="scheduler-form-field full-width"
+                                        x-show="editingTask.type === 'scheduled'">
+                                        <div class="label-help-wrapper">
+                                            <label class="scheduler-form-label">Schedule</label>
+                                            <div class="scheduler-form-help">Select a frequency or enter a
+                                                custom cron schedule (minute hour day month weekday)</div>
+                                        </div>
+                                        <div class="scheduler-frequency-picker" style="margin-bottom: 12px;">
+                                            <div class="searchable-select-container"
+                                                x-data="{ isDropdownOpen: false, searchQuery: '' }"
+                                                @click.away="isDropdownOpen = false">
+                                                <div class="searchable-select-input"
+                                                    @click="isDropdownOpen = !isDropdownOpen">
+                                                    <input type="text" x-model="searchQuery" :placeholder="({
+                                                                'custom': 'Custom (Manual Cron)',
+                                                                '* * * * *': 'Every Minute',
+                                                                '*/5 * * * *': 'Every 5 Minutes',
+                                                                '*/15 * * * *': 'Every 15 Minutes',
+                                                                '*/30 * * * *': 'Every 30 Minutes',
+                                                                '0 * * * *': 'Every Hour',
+                                                                '0 */12 * * *': 'Every 12 Hours',
+                                                                '0 0 * * *': 'Every Day (Midnight)',
+                                                                '0 0 * * 0': 'Every Week (Sunday)'
+                                                            })[selectedFrequency] || 'Select frequency...'"
+                                                        @input="isDropdownOpen = true">
+                                                    <span class="icon i-tabler-chevron-down"
+                                                        :class="{'rotated': isDropdownOpen}"></span>
+                                                </div>
+                                                <div class="searchable-select-dropdown" x-show="isDropdownOpen" x-cloak>
+                                                    <div class="searchable-select-options">
+                                                        <template
+                                                            x-for="option in [
+                                                                {value: 'custom', label: 'Custom (Manual Cron)'},
+                                                                {value: '* * * * *', label: 'Every Minute'},
+                                                                {value: '*/5 * * * *', label: 'Every 5 Minutes'},
+                                                                {value: '*/15 * * * *', label: 'Every 15 Minutes'},
+                                                                {value: '*/30 * * * *', label: 'Every 30 Minutes'},
+                                                                {value: '0 * * * *', label: 'Every Hour'},
+                                                                {value: '0 */12 * * *', label: 'Every 12 Hours'},
+                                                                {value: '0 0 * * *', label: 'Every Day (Midnight)'},
+                                                                {value: '0 0 * * 0', label: 'Every Week (Sunday)'}
+                                                            ].filter(o => !searchQuery || o.label.toLowerCase().includes(searchQuery.toLowerCase()))"
+                                                            :key="option.value">
+                                                            <div class="searchable-select-option"
+                                                                :class="{'selected': option.value === selectedFrequency}"
+                                                                @click="setFrequency(option.value); searchQuery = ''; isDropdownOpen = false"
+                                                                x-text="option.label">
+                                                            </div>
+                                                        </template>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <div class="scheduler-schedule-builder">
+                                            <div class="scheduler-schedule-field">
+                                                <span class="scheduler-schedule-label">Minute</span>
+                                                <input type="text" x-model="editingTask.schedule.minute" placeholder="*"
+                                                    maxlength="9">
+                                            </div>
+                                            <div class="scheduler-schedule-field">
+                                                <span class="scheduler-schedule-label">Hour</span>
+                                                <input type="text" x-model="editingTask.schedule.hour" placeholder="*"
+                                                    maxlength="9">
+                                            </div>
+                                            <div class="scheduler-schedule-field">
+                                                <span class="scheduler-schedule-label">Day</span>
+                                                <input type="text" x-model="editingTask.schedule.day" placeholder="*"
+                                                    maxlength="9">
+                                            </div>
+                                            <div class="scheduler-schedule-field">
+                                                <span class="scheduler-schedule-label">Month</span>
+                                                <input type="text" x-model="editingTask.schedule.month" placeholder="*"
+                                                    maxlength="9">
+                                            </div>
+                                            <div class="scheduler-schedule-field">
+                                                <span class="scheduler-schedule-label">Weekday</span>
+                                                <input type="text" x-model="editingTask.schedule.weekday"
+                                                    placeholder="*" maxlength="9">
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <!-- Plan (for planned tasks) -->
+                                    <div class="scheduler-form-field full-width"
+                                        x-show="editingTask.type === 'planned'">
+                                        <div class="label-help-wrapper">
+                                            <label class="scheduler-form-label">Plan</label>
+                                            <div class="scheduler-form-help">Specific execution times for this
+                                                task
+                                            </div>
+                                        </div>
+                                        <div class="scheduler-plan-builder">
+                                            <div class="scheduler-plan-todo">
+                                                <span class="scheduler-plan-label">Upcoming Executions</span>
+                                                <div class="scheduler-todo-list">
+                                                    <template
+                                                        x-if="editingTask.plan && Array.isArray(editingTask.plan.todo) && editingTask.plan.todo.length > 0">
+                                                        <template x-for="(time, index) in editingTask.plan.todo"
+                                                            :key="index">
+                                                            <div class="scheduler-todo-item">
+                                                                <span x-text="formatDate(time)"></span>
+                                                                <button
+                                                                    @click.prevent="editingTask.plan.todo.splice(index, 1)"
+                                                                    class="scheduler-todo-remove">
+                                                                    <svg xmlns="http://www.w3.org/2000/svg" width="16"
+                                                                        height="16" viewBox="0 0 24 24" fill="none"
+                                                                        stroke="currentColor" stroke-width="2"
+                                                                        stroke-linecap="round" stroke-linejoin="round">
+                                                                        <line x1="18" y1="6" x2="6" y2="18">
+                                                                        </line>
+                                                                        <line x1="6" y1="6" x2="18" y2="18">
+                                                                        </line>
+                                                                    </svg>
+                                                                </button>
+                                                            </div>
+                                                        </template>
+                                                    </template>
+                                                    <template
+                                                        x-if="!editingTask.plan || !Array.isArray(editingTask.plan.todo) || editingTask.plan.todo.length === 0">
+                                                        <div class="scheduler-empty-plan">
+                                                            No scheduled execution times yet. Add one below.
+                                                        </div>
+                                                    </template>
+                                                    <div class="scheduler-add-todo">
+                                                        <!-- Create form planned task input -->
+                                                        <input type="text" id="newPlannedTime-create"
+                                                            x-ref="plannedTimeCreate" class="scheduler-flatpickr-input"
+                                                            placeholder="Select date and time">
+                                                        <!-- Create Task Form Add Time Button -->
+                                                        <button @click.prevent="
+                                                                const input = $refs.plannedTimeCreate;
+                                                                if (!input) {
+                                                                    console.error('Input reference not found for plannedTimeCreate');
+                                                                    return;
+                                                                }
+
+                                                                // Ensure plan structure exists
+                                                                if (!editingTask.plan) {
+                                                                    editingTask.plan = { todo: [], in_progress: null, done: [] };
+                                                                }
+                                                                if (!Array.isArray(editingTask.plan.todo)) {
+                                                                    editingTask.plan.todo = [];
+                                                                }
+
+                                                                // Get date from Flatpickr if available
+                                                                let selectedDate;
+                                                                if (input._flatpickr && input._flatpickr.selectedDates.length > 0) {
+                                                                    selectedDate = input._flatpickr.selectedDates[0];
+                                                                } else if (input.value) {
+                                                                    selectedDate = new Date(input.value);
+                                                                }
+
+                                                                if (!selectedDate || isNaN(selectedDate.getTime())) {
+                                                                    alert('Please select a valid date and time');
+                                                                    return;
+                                                                }
+
+                                                                // Convert to ISO string and add to plan
+                                                                editingTask.plan.todo.push(selectedDate.toISOString());
+
+                                                                // Sort by date (earliest first)
+                                                                editingTask.plan.todo.sort();
+
+                                                                // Clear the input
+                                                                if (input._flatpickr) {
+                                                                    input._flatpickr.clear();
+                                                                } else {
+                                                                    input.value = '';
+                                                                }
+                                                            " class="scheduler-add-todo-button">
+                                                            <span class="material-symbols-outlined"
+                                                                style="margin-right: 4px;">add</span>
+                                                            Add Time
+                                                        </button>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <!-- Token (for ad-hoc tasks) -->
+                                    <div class="scheduler-form-field full-width" x-show="editingTask.type === 'adhoc'">
+                                        <div class="label-help-wrapper">
+                                            <label class="scheduler-form-label">Token</label>
+                                            <div class="scheduler-form-help">Token used to trigger this task
+                                                externally</div>
+                                        </div>
+                                        <div class="input-group">
+                                            <input type="text" x-model="editingTask.token"
+                                                placeholder="Token for ad-hoc task">
+                                            <button class="scheduler-task-action"
+                                                @click="editingTask.token = generateRandomToken()">
+                                                Generate
+                                            </button>
+                                        </div>
+                                    </div>
+
+                                    <!-- System Prompt -->
+                                    <div class="scheduler-form-field full-width">
+                                        <div class="label-help-wrapper">
+                                            <label class="scheduler-form-label">System Prompt</label>
+                                            <div class="scheduler-form-help">System-level instructions for the
+                                                assistant</div>
+                                        </div>
+                                        <textarea x-model="editingTask.system_prompt"
+                                            placeholder="System instructions for the AI"></textarea>
+                                    </div>
+
+                                    <!-- User Prompt -->
+                                    <div class="scheduler-form-field full-width">
+                                        <div class="label-help-wrapper">
+                                            <label class="scheduler-form-label">User Prompt</label>
+                                            <div class="scheduler-form-help">The main task prompt that will be
+                                                executed</div>
+                                        </div>
+                                        <textarea x-model="editingTask.prompt"
+                                            placeholder="User message for the AI"></textarea>
+                                    </div>
+
+                                    <!-- Attachments Field -->
+                                    <div class="scheduler-form-field full-width">
+                                        <div class="label-help-wrapper">
+                                            <label class="scheduler-form-label">Attachments</label>
+                                            <div class="scheduler-form-help">Container file paths or URLs, one
+                                                per
+                                                line</div>
+                                        </div>
+                                        <textarea x-model="attachmentsText"
+                                            placeholder="Enter file paths or URLs, one per line"></textarea>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Edit Task Form -->
+                            <div class="scheduler-form" x-show="isEditing">
+                                <div class="scheduler-form-header">
+                                    <div class="scheduler-form-title">Edit Task</div>
+                                    <div class="scheduler-form-actions">
+                                        <button class="btn btn-ok" @click="saveTask()">
+                                            Save
+                                        </button>
+                                        <button class="btn btn-cancel" @click="cancelEdit()">
+                                            Cancel
+                                        </button>
+                                    </div>
+                                </div>
+
+                                <div class="scheduler-form-grid">
+                                    <!-- Task Name -->
+                                    <div class="scheduler-form-field">
+                                        <div class="label-help-wrapper">
+                                            <label class="scheduler-form-label">Task Name</label>
+                                            <div class="scheduler-form-help">A unique name to identify this task
+                                            </div>
+                                        </div>
+                                        <input type="text" x-model="editingTask.name" placeholder="Enter task name">
+                                    </div>
+
+                                    <!-- Task Type (disabled when editing) -->
+                                    <div class="scheduler-form-field">
+                                        <div class="label-help-wrapper">
+                                            <label class="scheduler-form-label">Task Type</label>
+                                            <div class="scheduler-form-help">Task type cannot be changed after
+                                                creation</div>
+                                        </div>
+                                        <select x-model="editingTask.type" disabled>
+                                            <option value="scheduled">Scheduled Task</option>
+                                            <option value="adhoc">Ad-hoc Task</option>
+                                            <option value="planned">Planned Task</option>
+                                        </select>
+                                    </div>
+
+                                    <div class="scheduler-form-field">
+                                        <div class="label-help-wrapper">
+                                            <label class="scheduler-form-label">Project</label>
+                                            <div class="scheduler-form-help"
+                                                x-text="editingTask.dedicated_context ? 'Dedicated tasks inherit the active chat project.' : 'Shared tasks mirror the project assigned to their context.'">
+                                            </div>
+                                        </div>
+                                        <div class="project-display">
+                                            <span class="project-color-ball"
+                                                :style="editingTask.project?.color ? { backgroundColor: editingTask.project.color } : { border: '1px solid var(--color-border)' }"></span>
+                                            <span x-text="formatProjectLabel(editingTask.project)"></span>
+                                        </div>
+                                    </div>
+
+                                    <!-- Task State in Edit Form - Add after Task Type -->
+                                    <div class="scheduler-form-field" x-show="isEditing">
+                                        <div class="label-help-wrapper">
+                                            <label class="scheduler-form-label">State</label>
+                                            <div class="scheduler-form-help">Change the task's state</div>
+                                        </div>
+                                        <div>
+                                            <div class="scheduler-state-selector">
+                                                <span class="scheduler-status-badge scheduler-status-idle"
+                                                    :class="{'scheduler-status-selected': editingTask.state === 'idle'}"
+                                                    @click="editingTask.state = 'idle'">Manual</span>
+                                                <span class="scheduler-status-badge scheduler-status-running"
+                                                    :class="{'scheduler-status-selected': editingTask.state === 'running'}"
+                                                    @click="editingTask.state = 'running'">running</span>
+                                                <span class="scheduler-status-badge scheduler-status-disabled"
+                                                    :class="{'scheduler-status-selected': editingTask.state === 'disabled'}"
+                                                    @click="editingTask.state = 'disabled'">disabled</span>
+                                                <span class="scheduler-status-badge scheduler-status-error"
+                                                    :class="{'scheduler-status-selected': editingTask.state === 'error'}"
+                                                    @click="editingTask.state = 'error'">error</span>
+                                            </div>
+                                            <div class="scheduler-state-explanation">
+                                                <span x-show="editingTask.state === 'idle'"><strong>Manual</strong>:
+                                                    ready to run</span>
+                                                <span x-show="editingTask.state === 'running'"><strong>running</strong>:
+                                                    currently executing</span>
+                                                <span
+                                                    x-show="editingTask.state === 'disabled'"><strong>disabled</strong>:
+                                                    won't execute automatically</span>
+                                                <span x-show="editingTask.state === 'error'"><strong>error</strong>:
+                                                    task encountered an error</span>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <!-- Schedule (for scheduled tasks) -->
+                                    <div class="scheduler-form-field full-width"
+                                        x-show="editingTask && editingTask.type === 'scheduled'">
+                                        <div class="label-help-wrapper">
+                                            <label class="scheduler-form-label">Schedule (Cron
+                                                Expression)</label>
+                                            <div class="scheduler-form-help">Select a frequency or enter a
+                                                custom cron schedule (minute hour day month weekday)</div>
+                                        </div>
+                                        <div class="scheduler-frequency-picker" style="margin-bottom: 12px;">
+                                            <div class="searchable-select-container"
+                                                x-data="{ isDropdownOpen: false, searchQuery: '' }"
+                                                @click.away="isDropdownOpen = false">
+                                                <div class="searchable-select-input"
+                                                    @click="isDropdownOpen = !isDropdownOpen">
+                                                    <input type="text" x-model="searchQuery" :placeholder="({
+                                                                'custom': 'Custom (Manual Cron)',
+                                                                '* * * * *': 'Every Minute',
+                                                                '*/5 * * * *': 'Every 5 Minutes',
+                                                                '*/15 * * * *': 'Every 15 Minutes',
+                                                                '*/30 * * * *': 'Every 30 Minutes',
+                                                                '0 * * * *': 'Every Hour',
+                                                                '0 */12 * * *': 'Every 12 Hours',
+                                                                '0 0 * * *': 'Every Day (Midnight)',
+                                                                '0 0 * * 0': 'Every Week (Sunday)'
+                                                            })[selectedFrequency] || 'Select frequency...'"
+                                                        @input="isDropdownOpen = true">
+                                                    <span class="icon i-tabler-chevron-down"
+                                                        :class="{'rotated': isDropdownOpen}"></span>
+                                                </div>
+                                                <div class="searchable-select-dropdown" x-show="isDropdownOpen" x-cloak>
+                                                    <div class="searchable-select-options">
+                                                        <template
+                                                            x-for="option in [
+                                                                {value: 'custom', label: 'Custom (Manual Cron)'},
+                                                                {value: '* * * * *', label: 'Every Minute'},
+                                                                {value: '*/5 * * * *', label: 'Every 5 Minutes'},
+                                                                {value: '*/15 * * * *', label: 'Every 15 Minutes'},
+                                                                {value: '*/30 * * * *', label: 'Every 30 Minutes'},
+                                                                {value: '0 * * * *', label: 'Every Hour'},
+                                                                {value: '0 */12 * * *', label: 'Every 12 Hours'},
+                                                                {value: '0 0 * * *', label: 'Every Day (Midnight)'},
+                                                                {value: '0 0 * * 0', label: 'Every Week (Sunday)'}
+                                                            ].filter(o => !searchQuery || o.label.toLowerCase().includes(searchQuery.toLowerCase()))"
+                                                            :key="option.value">
+                                                            <div class="searchable-select-option"
+                                                                :class="{'selected': option.value === selectedFrequency}"
+                                                                @click="setFrequency(option.value); searchQuery = ''; isDropdownOpen = false"
+                                                                x-text="option.label">
+                                                            </div>
+                                                        </template>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <div class="scheduler-schedule-builder">
+                                            <div class="scheduler-schedule-field">
+                                                <span class="scheduler-schedule-label">Minute</span>
+                                                <input type="text" x-model="editingTask.schedule.minute" placeholder="*"
+                                                    maxlength="9">
+                                            </div>
+                                            <div class="scheduler-schedule-field">
+                                                <span class="scheduler-schedule-label">Hour</span>
+                                                <input type="text" x-model="editingTask.schedule.hour" placeholder="*"
+                                                    maxlength="9">
+                                            </div>
+                                            <div class="scheduler-schedule-field">
+                                                <span class="scheduler-schedule-label">Day</span>
+                                                <input type="text" x-model="editingTask.schedule.day" placeholder="*"
+                                                    maxlength="9">
+                                            </div>
+                                            <div class="scheduler-schedule-field">
+                                                <span class="scheduler-schedule-label">Month</span>
+                                                <input type="text" x-model="editingTask.schedule.month" placeholder="*"
+                                                    maxlength="9">
+                                            </div>
+                                            <div class="scheduler-schedule-field">
+                                                <span class="scheduler-schedule-label">Weekday</span>
+                                                <input type="text" x-model="editingTask.schedule.weekday"
+                                                    placeholder="*" maxlength="9">
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <!-- Plan (for planned tasks) -->
+                                    <div class="scheduler-form-field full-width"
+                                        x-show="editingTask.type === 'planned'">
+                                        <div class="label-help-wrapper">
+                                            <label class="scheduler-form-label">Plan</label>
+                                            <div class="scheduler-form-help">Specific execution times for this
+                                                task
+                                            </div>
+                                        </div>
+                                        <div class="scheduler-plan-builder">
+                                            <div class="scheduler-plan-todo">
+                                                <span class="scheduler-plan-label">Upcoming Executions</span>
+                                                <div class="scheduler-todo-list">
+                                                    <template
+                                                        x-if="editingTask.plan && Array.isArray(editingTask.plan.todo) && editingTask.plan.todo.length > 0">
+                                                        <template x-for="(time, index) in editingTask.plan.todo"
+                                                            :key="index">
+                                                            <div class="scheduler-todo-item">
+                                                                <span x-text="formatDate(time)"></span>
+                                                                <button
+                                                                    @click.prevent="editingTask.plan.todo.splice(index, 1)"
+                                                                    class="scheduler-todo-remove">
+                                                                    <svg xmlns="http://www.w3.org/2000/svg" width="16"
+                                                                        height="16" viewBox="0 0 24 24" fill="none"
+                                                                        stroke="currentColor" stroke-width="2"
+                                                                        stroke-linecap="round" stroke-linejoin="round">
+                                                                        <line x1="18" y1="6" x2="6" y2="18">
+                                                                        </line>
+                                                                        <line x1="6" y1="6" x2="18" y2="18">
+                                                                        </line>
+                                                                    </svg>
+                                                                </button>
+                                                            </div>
+                                                        </template>
+                                                    </template>
+                                                    <template
+                                                        x-if="!editingTask.plan || !Array.isArray(editingTask.plan.todo) || editingTask.plan.todo.length === 0">
+                                                        <div class="scheduler-empty-plan">
+                                                            No scheduled execution times yet. Add one below.
+                                                        </div>
+                                                    </template>
+                                                    <div class="scheduler-add-todo">
+                                                        <!-- Edit form planned task input -->
+                                                        <input type="text" id="newPlannedTime-edit"
+                                                            x-ref="plannedTimeEdit" class="scheduler-flatpickr-input"
+                                                            placeholder="Select date and time">
+                                                        <!-- Edit Task Form Add Time Button -->
+                                                        <button @click.prevent="
+                                                                const input = $refs.plannedTimeEdit;
+                                                                if (!input) {
+                                                                    console.error('Input reference not found for plannedTimeEdit');
+                                                                    return;
+                                                                }
+
+                                                                // Ensure plan structure exists
+                                                                if (!editingTask.plan) {
+                                                                    editingTask.plan = { todo: [], in_progress: null, done: [] };
+                                                                }
+                                                                if (!Array.isArray(editingTask.plan.todo)) {
+                                                                    editingTask.plan.todo = [];
+                                                                }
+
+                                                                // Get date from Flatpickr if available
+                                                                let selectedDate;
+                                                                if (input._flatpickr && input._flatpickr.selectedDates.length > 0) {
+                                                                    selectedDate = input._flatpickr.selectedDates[0];
+                                                                } else if (input.value) {
+                                                                    selectedDate = new Date(input.value);
+                                                                }
+
+                                                                if (!selectedDate || isNaN(selectedDate.getTime())) {
+                                                                    alert('Please select a valid date and time');
+                                                                    return;
+                                                                }
+
+                                                                // Convert to ISO string and add to plan
+                                                                editingTask.plan.todo.push(selectedDate.toISOString());
+
+                                                                // Sort by date (earliest first)
+                                                                editingTask.plan.todo.sort();
+
+                                                                // Clear the input
+                                                                if (input._flatpickr) {
+                                                                    input._flatpickr.clear();
+                                                                } else {
+                                                                    input.value = '';
+                                                                }
+                                                            " class="scheduler-add-todo-button">
+                                                            <svg xmlns="http://www.w3.org/2000/svg" width="16"
+                                                                height="16" viewBox="0 0 24 24" fill="none"
+                                                                stroke="currentColor" stroke-width="2"
+                                                                stroke-linecap="round" stroke-linejoin="round"
+                                                                style="margin-right: 4px;">
+                                                                <line x1="12" y1="5" x2="12" y2="19"></line>
+                                                                <line x1="5" y1="12" x2="19" y2="12"></line>
+                                                            </svg>
+                                                            Add Time
+                                                        </button>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <!-- Token (for ad-hoc tasks) -->
+                                    <div class="scheduler-form-field full-width" x-show="editingTask.type === 'adhoc'">
+                                        <div class="label-help-wrapper">
+                                            <label class="scheduler-form-label">Token</label>
+                                            <div class="scheduler-form-help">Token used to trigger this task
+                                                externally</div>
+                                        </div>
+                                        <div class="input-group">
+                                            <input type="text" x-model="editingTask.token"
+                                                placeholder="Token for ad-hoc task">
+                                            <button class="scheduler-task-action"
+                                                @click="editingTask.token = generateRandomToken()">
+                                                Generate
+                                            </button>
+                                        </div>
+                                    </div>
+
+                                    <!-- System Prompt -->
+                                    <div class="scheduler-form-field full-width">
+                                        <div class="label-help-wrapper">
+                                            <label class="scheduler-form-label">System Prompt</label>
+                                            <div class="scheduler-form-help">System-level instructions for the
+                                                assistant</div>
+                                        </div>
+                                        <textarea x-model="editingTask.system_prompt"
+                                            placeholder="System instructions for the AI"></textarea>
+                                    </div>
+
+                                    <!-- User Prompt -->
+                                    <div class="scheduler-form-field full-width">
+                                        <div class="label-help-wrapper">
+                                            <label class="scheduler-form-label">User Prompt</label>
+                                            <div class="scheduler-form-help">The main task prompt that will be
+                                                executed</div>
+                                        </div>
+                                        <textarea x-model="editingTask.prompt"
+                                            placeholder="User message for the AI"></textarea>
+                                    </div>
+
+                                    <!-- Attachments Field -->
+                                    <div class="scheduler-form-field full-width">
+                                        <div class="label-help-wrapper">
+                                            <label class="scheduler-form-label">Attachments</label>
+                                            <div class="scheduler-form-help">Container file paths or URLs, one
+                                                per
+                                                line</div>
+                                        </div>
+                                        <textarea x-model="attachmentsText"
+                                            placeholder="Enter file paths or URLs, one per line"></textarea>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Task List View -->
+                            <div class="scheduler-container" x-show="!isCreating && !isEditing && viewMode === 'list'">
+                                <!-- Controls (matching Project Management) -->
+                                <div class="scheduler-controls projects-controls">
+                                    <div class="search-box"><input type="text" x-model="taskSearchQuery"
+                                            @input="computeFilteredTasks()" placeholder="Search tasks..."
+                                            class="input-field"></div>
+                                    <div class="bulk-actions">
+                                        <button class="btn btn-field" @click="startCreateTask()">
+                                            <span class="material-symbols-outlined">add</span>
+                                            <span class="btn-text">New Task</span>
+                                        </button>
+                                    </div>
+                                </div>
+
+
+
+                                <!-- Loading State -->
+                                <!-- <div class="scheduler-loading" x-show="isLoading">
+                                        Loading tasks...
+                                    </div> -->
+
+                                <!-- Empty State -->
+                                <div class="scheduler-empty" x-show="!isLoading && filteredTasks.length === 0"
+                                    x-effect="$el.style.display = (!isLoading && filteredTasks.length === 0) ? '' : 'none'">
+                                    <!-- <div class="scheduler-empty-icon">📋</div> -->
+                                    <div class="scheduler-empty-text">No tasks found</div>
+                                </div>
+
+                                <!-- Task List Table -->
+                                <div class="scheduler-table-wrapper" x-show="!isLoading && filteredTasks.length > 0"
+                                    x-effect="$el.style.display = (!isLoading && filteredTasks.length > 0) ? '' : 'none'">
+                                    <table class="settings-table scheduler-task-list">
+                                        <thead>
+                                            <tr>
+                                                <th width="40">
+                                                    <input type="checkbox" :checked="allTasksSelected"
+                                                        @click.stop="toggleSelectAllTasks()">
+                                                </th>
+                                                <th @click="changeSort('name')">
+                                                    Name
+                                                    <span class="scheduler-sort-indicator" x-show="sortField === 'name'"
+                                                        :class="{'scheduler-sort-desc': sortDirection === 'desc'}">↑</span>
+                                                </th>
+                                                <th @click="changeSort('state')" class="hide-mobile">
+                                                    State
+                                                    <span class="scheduler-sort-indicator"
+                                                        x-show="sortField === 'state'"
+                                                        :class="{'scheduler-sort-desc': sortDirection === 'desc'}">↑</span>
+                                                </th>
+                                                <th @click="changeSort('type')" class="hide-mobile">
+                                                    Type
+                                                    <span class="scheduler-sort-indicator" x-show="sortField === 'type'"
+                                                        :class="{'scheduler-sort-desc': sortDirection === 'desc'}">↑</span>
+                                                </th>
+                                                <th @click="changeSort('project_slug')" class="hide-mobile">
+                                                    Project
+                                                    <span class="scheduler-sort-indicator"
+                                                        x-show="sortField === 'project_slug'"
+                                                        :class="{'scheduler-sort-desc': sortDirection === 'desc'}">↑</span>
+                                                </th>
+                                                <th @click="changeSort('schedule')" class="hide-mobile">
+                                                    Schedule
+                                                    <span class="scheduler-sort-indicator"
+                                                        x-show="sortField === 'schedule'"
+                                                        :class="{'scheduler-sort-desc': sortDirection === 'desc'}">↑</span>
+                                                </th>
+                                                <th @click="changeSort('last_run')" class="hide-mobile">
+                                                    Last Run
+                                                    <span class="scheduler-sort-indicator"
+                                                        x-show="sortField === 'last_run'"
+                                                        :class="{'scheduler-sort-desc': sortDirection === 'desc'}">↑</span>
+                                                </th>
+                                                <th width="100">Actions</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            <template x-for="task in filteredTasks" :key="task.uuid">
+                                                <tr @click="navigateToTaskChat(task)"
+                                                    :class="{'selected': isTaskSelected(task.uuid)}">
+                                                    <td width="40" @click.stop>
+                                                        <input type="checkbox" :checked="isTaskSelected(task.uuid)"
+                                                            @change="toggleTaskSelection(task.uuid)">
+                                                    </td>
+                                                    <td>
+                                                        <div class="chat-info">
+                                                            <span class="chat-title" x-text="task.name"></span>
+                                                            <div class="show-mobile-only"
+                                                                style="font-size: 0.75rem; color: var(--text-muted); margin-top: 4px; display: flex; align-items: center; gap: 6px;">
+                                                                <span class="scheduler-status-badge"
+                                                                    :class="getStateBadgeClass(task.state)"
+                                                                    x-text="task.state === 'idle' ? 'Manual' : task.state"></span>
+                                                                <span x-text="formatTaskProject(task)"></span>
+                                                            </div>
+                                                        </div>
+                                                    </td>
+                                                    <td class="hide-mobile">
+                                                        <span class="scheduler-status-badge"
+                                                            :class="getStateBadgeClass(task.state)"
+                                                            x-text="task.state === 'idle' ? 'Manual' : task.state"></span>
+                                                    </td>
+                                                    <td x-text="task.type" class="hide-mobile"></td>
+                                                    <td class="hide-mobile">
+                                                        <span class="project-color-ball"
+                                                            :style="extractTaskProject(task)?.color ? { backgroundColor: extractTaskProject(task).color } : { border: '1px solid var(--color-border)' }"></span>
+                                                        <span x-text="formatTaskProject(task)"></span>
+                                                    </td>
+                                                    <td class="hide-mobile">
+                                                        <span x-show="task.type === 'scheduled'"
+                                                            x-text="formatSchedule(task)"></span>
+                                                        <span x-show="task.type === 'adhoc'"
+                                                            class="scheduler-no-schedule">—</span>
+                                                        <span x-show="task.type === 'planned'"
+                                                            x-html="formatPlan(task).replace(/\n/g, '<br>')"></span>
+                                                    </td>
+                                                    <td x-text="formatDate(task.last_run)" class="hide-mobile"></td>
+                                                    <td @click.stop>
+                                                        <div class="scheduler-task-actions">
+                                                            <button class="btn btn-icon"
+                                                                @click="navigateToTaskChat(task)" title="Open Chat">
+                                                                <span class="material-symbols-outlined">chat</span>
+                                                            </button>
+                                                            <button class="btn btn-icon" @click="runTask(task.uuid)"
+                                                                title="Run Task">
+                                                                <span
+                                                                    class="material-symbols-outlined">play_arrow</span>
+                                                            </button>
+                                                            <button class="btn btn-icon"
+                                                                @click="resetTaskState(task.uuid)" title="Reset State">
+                                                                <span
+                                                                    class="material-symbols-outlined">restart_alt</span>
+                                                            </button>
+                                                            <button class="btn btn-icon"
+                                                                @click="startEditTask(task.uuid)" title="Edit Task">
+                                                                <span class="material-symbols-outlined">edit</span>
+                                                            </button>
+                                                            <button class="btn btn-icon text-danger"
+                                                                @click="deleteTask(task.uuid)" title="Delete Task">
+                                                                <span class="material-symbols-outlined">delete</span>
+                                                            </button>
+                                                        </div>
+                                                    </td>
+                                                </tr>
+                                            </template>
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </div>
+
+                            <!-- Task Detail View -->
+                            <div class="scheduler-detail-view"
+                                x-show="!isCreating && !isEditing && viewMode === 'detail' && selectedTaskForDetail">
+                                <div class="scheduler-detail-header">
+                                    <h2 class="scheduler-detail-title"
+                                        x-text="selectedTaskForDetail ? selectedTaskForDetail.name : ''"></h2>
+                                    <div class="scheduler-status-badge"
+                                        :class="selectedTaskForDetail ? getStateBadgeClass(selectedTaskForDetail.state) : ''">
+                                    </div>
+                                    <div class="scheduler-detail-actions"
+                                        style="display: flex; gap: 8px; align-items: center;">
+                                        <button class="btn btn-primary" @click="runTask(selectedTaskForDetail.uuid)">
+                                            <span class="material-symbols-outlined"
+                                                style="margin-right: 4px; font-size: 1.1rem;">play_circle</span> Run
+                                            Now
+                                        </button>
+                                        <button class="btn btn-primary"
+                                            @click="navigateToTaskChat(selectedTaskForDetail)">
+                                            <span class="material-symbols-outlined"
+                                                style="margin-right: 4px; font-size: 1.1rem;">chat</span> Open Chat
+                                        </button>
+                                        <button class="btn btn-cancel" @click="closeTaskDetail()">Close</button>
+                                    </div>
+                                </div>
+
+                                <div class="scheduler-detail-content">
+                                    <div class="scheduler-details-grid">
+                                        <div class="scheduler-details-label">Type:</div>
+                                        <div class="scheduler-details-value"
+                                            x-text="selectedTaskForDetail ? selectedTaskForDetail.type : ''">
+                                        </div>
+
+                                        <div class="scheduler-details-label">Project:</div>
+                                        <div class="scheduler-details-value">
+                                            <span class="project-color-ball"
+                                                :style="extractTaskProject(selectedTaskForDetail)?.color ? { backgroundColor: extractTaskProject(selectedTaskForDetail).color } : { border: '1px solid var(--color-border)' }"></span>
+                                            <span
+                                                x-text="selectedTaskForDetail ? formatTaskProject(selectedTaskForDetail) : 'No Project'"></span>
+                                        </div>
+
+                                        <div class="scheduler-details-label">Created:</div>
+                                        <div class="scheduler-details-value"
+                                            x-text="selectedTaskForDetail ? formatDate(selectedTaskForDetail.created_at) : ''">
+                                        </div>
+
+                                        <div class="scheduler-details-label">Last Updated:</div>
+                                        <div class="scheduler-details-value"
+                                            x-text="selectedTaskForDetail ? formatDate(selectedTaskForDetail.updated_at) : ''">
+                                        </div>
+
+                                        <div class="scheduler-details-label">Last Run:</div>
+                                        <div class="scheduler-details-value"
+                                            x-text="selectedTaskForDetail ? formatDate(selectedTaskForDetail.last_run) : ''">
+                                        </div>
+
+                                        <div class="scheduler-details-label"
+                                            x-show="selectedTaskForDetail && selectedTaskForDetail.type === 'scheduled'">
+                                            Schedule:</div>
+                                        <div class="scheduler-details-value"
+                                            x-show="selectedTaskForDetail && selectedTaskForDetail.type === 'scheduled'"
+                                            x-text="selectedTaskForDetail ? formatSchedule(selectedTaskForDetail) : ''">
+                                        </div>
+
+                                        <div class="scheduler-details-label"
+                                            x-show="selectedTaskForDetail && selectedTaskForDetail.type === 'adhoc'">
+                                            Token:</div>
+                                        <div class="scheduler-details-value"
+                                            x-show="selectedTaskForDetail && selectedTaskForDetail.type === 'adhoc'"
+                                            x-text="selectedTaskForDetail ? selectedTaskForDetail.token : ''">
+                                        </div>
+
+                                        <div class="scheduler-details-label"
+                                            x-show="selectedTaskForDetail && selectedTaskForDetail.type === 'planned'">
+                                            Plan:</div>
+                                        <div class="scheduler-details-value"
+                                            x-show="selectedTaskForDetail && selectedTaskForDetail.type === 'planned'">
+                                            <div x-show="selectedTaskForDetail && selectedTaskForDetail.plan">
+                                                <div><strong>Upcoming:</strong></div>
+                                                <template
+                                                    x-if="selectedTaskForDetail && selectedTaskForDetail.plan && selectedTaskForDetail.plan.todo && selectedTaskForDetail.plan.todo.length > 0">
+                                                    <div>
+                                                        <template
+                                                            x-for="(time, index) in selectedTaskForDetail.plan.todo"
+                                                            :key="index">
+                                                            <div x-text="formatDate(time)"></div>
+                                                        </template>
+                                                    </div>
+                                                </template>
+                                                <template
+                                                    x-if="!selectedTaskForDetail || !selectedTaskForDetail.plan || !selectedTaskForDetail.plan.todo || selectedTaskForDetail.plan.todo.length === 0">
+                                                    <div>No upcoming executions</div>
+                                                </template>
+
+                                                <div><strong>In Progress:</strong></div>
+                                                <div
+                                                    x-text="selectedTaskForDetail && selectedTaskForDetail.plan && selectedTaskForDetail.plan.in_progress ? formatDate(selectedTaskForDetail.plan.in_progress) : 'None'">
+                                                </div>
+
+                                                <div><strong>Completed:</strong></div>
+                                                <template
+                                                    x-if="selectedTaskForDetail && selectedTaskForDetail.plan && selectedTaskForDetail.plan.done && selectedTaskForDetail.plan.done.length > 0">
+                                                    <div>
+                                                        <template
+                                                            x-for="(time, index) in selectedTaskForDetail.plan.done"
+                                                            :key="index">
+                                                            <div x-text="formatDate(time)"></div>
+                                                        </template>
+                                                    </div>
+                                                </template>
+                                                <template
+                                                    x-if="!selectedTaskForDetail || !selectedTaskForDetail.plan || !selectedTaskForDetail.plan.done || selectedTaskForDetail.plan.done.length === 0">
+                                                    <div>No completed executions</div>
+                                                </template>
+                                            </div>
+                                        </div>
+
+                                        <div class="scheduler-details-label">Last Result:</div>
+                                        <div class="scheduler-details-value"
+                                            x-text="selectedTaskForDetail && selectedTaskForDetail.last_result ? selectedTaskForDetail.last_result : 'No results yet'">
+                                        </div>
+
+                                        <div class="scheduler-details-label">System Prompt:</div>
+                                        <div class="scheduler-details-value"
+                                            x-text="selectedTaskForDetail ? selectedTaskForDetail.system_prompt : ''">
+                                        </div>
+
+                                        <div class="scheduler-details-label">User Prompt:</div>
+                                        <div class="scheduler-details-value"
+                                            x-text="selectedTaskForDetail ? selectedTaskForDetail.prompt : ''">
+                                        </div>
+
+                                        <div class="scheduler-details-label">Attachments:</div>
+                                        <div class="scheduler-details-value">
+                                            <template
+                                                x-if="selectedTaskForDetail && selectedTaskForDetail.attachments && selectedTaskForDetail.attachments.length > 0">
+                                                <div>
+                                                    <template
+                                                        x-for="(attachment, index) in selectedTaskForDetail.attachments"
+                                                        :key="index">
+                                                        <div x-text="attachment"></div>
+                                                    </template>
+                                                </div>
+                                            </template>
+                                            <template
+                                                x-if="!selectedTaskForDetail || !selectedTaskForDetail.attachments || selectedTaskForDetail.attachments.length === 0">
+                                                <div>No attachments</div>
+                                            </template>
+                                        </div>
+                                    </div>
+                                </div>
+
+                            </div>
+
+                            <!-- Floating Action Bar for Task Mass Deletion -->
+                            <template x-if="someTasksSelected">
+                                <div class="floating-mass-action-bar" x-cloak>
+                                    <div class="selection-count">
+                                        <span x-text="selectedTaskIds.length"></span> tasks selected
+                                    </div>
+                                    <button class="btn btn-danger" @click="deleteSelectedTasks()">
+                                        <span class="material-symbols-outlined">delete_sweep</span>
+                                        Delete Selected
+                                    </button>
+                                    <button class="btn btn-ghost" @click="selectedTaskIds = []; updateSelectionState();"
+                                        title="Clear selection">
+                                        <span class="material-symbols-outlined">close</span>
+                                    </button>
+                                </div>
+                            </template>
+                        </div>
+                    </div>

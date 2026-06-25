@@ -1,0 +1,6 @@
+{
+  "private": true,
+  "description": "AGIX framework root — DO NOT add project-level dependencies here. Use project-specific package.json files in /usr/projects/<name>/.",
+  "devDependencies": {},
+  "dependencies": {}
+}

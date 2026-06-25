@@ -1,0 +1,171 @@
+                    <div id="projects-tab-content" x-show="activeTab === 'projects'" x-cloak>
+                        <nav>
+                            <ul>
+                                <li>
+                                    <a href="#section-projects-management">
+                                        <img src="public/folder.svg" alt="Projects">
+                                        <span>Project Management</span>
+                                    </a>
+                                </li>
+                            </ul>
+                        </nav>
+
+                        <div id="section-projects-management" class="section">
+                            <div class="section-title">Project Management</div>
+                            <div class="section-description">Manage your projects - create, edit, and delete
+                                projects.</div>
+
+                            <!-- Project Controls -->
+                            <div class="projects-controls"
+                                x-show="$store.projects && $store.projects.projectList.length > 0">
+                                <div class="search-box"><input type="text" x-model="$store.projects.projectSearchQuery"
+                                        placeholder="Search projects..." class="input-field"></div>
+                                <div class="bulk-actions">
+                                    <button class="btn btn-field" @click="$store.projects.openCreateModal()">
+                                        <span class="material-symbols-outlined">add</span>
+                                        <span class="btn-text">New Project</span>
+                                    </button>
+                                </div>
+                            </div>
+
+                            <!-- Projects Table -->
+                            <div class="scheduler-table-wrapper"
+                                x-show="$store.projects && $store.projects.projectList.length > 0">
+                                <table class="settings-table">
+                                    <thead>
+                                        <tr>
+                                            <th width="40">
+                                                <input type="checkbox" :checked="$store.projects.areAllSelected()"
+                                                    @change="$store.projects.toggleSelectAll()">
+                                            </th>
+                                            <th width="40"></th>
+                                            <th @click="$store.projects.sortBy('title')" class="sortable-header">
+                                                Title
+                                                <span class="scheduler-sort-indicator"
+                                                    x-show="$store.projects.sortField === 'title'"
+                                                    :class="{'scheduler-sort-desc': $store.projects.sortDirection === 'desc'}">▲</span>
+                                            </th>
+                                            <th class="hide-mobile" @click="$store.projects.sortBy('name')"
+                                                style="cursor:pointer">
+                                                Folder
+                                                <span class="scheduler-sort-indicator"
+                                                    x-show="$store.projects.sortField === 'name'"
+                                                    :class="{'scheduler-sort-desc': $store.projects.sortDirection === 'desc'}">▲</span>
+                                            </th>
+                                            <th width="130" class="hide-mobile"
+                                                @click="$store.projects.sortBy('created_at')" style="cursor:pointer">
+                                                Created
+                                                <span class="scheduler-sort-indicator"
+                                                    x-show="$store.projects.sortField === 'created_at'"
+                                                    :class="{'scheduler-sort-desc': $store.projects.sortDirection === 'desc'}">▲</span>
+                                            </th>
+                                            <th width="130" class="hide-mobile"
+                                                @click="$store.projects.sortBy('updated_at')" style="cursor:pointer">
+                                                Modified
+                                                <span class="scheduler-sort-indicator"
+                                                    x-show="$store.projects.sortField === 'updated_at'"
+                                                    :class="{'scheduler-sort-desc': $store.projects.sortDirection === 'desc'}">▲</span>
+                                            </th>
+                                            <th width="100">Actions</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        <template x-for="project in $store.projects.getFilteredProjectList()"
+                                            :key="project.name">
+                                            <tr :class="{'selected': $store.projects.isProjectSelected(project.name)}">
+                                                <td>
+                                                    <input type="checkbox"
+                                                        :checked="$store.projects.isProjectSelected(project.name)"
+                                                        @change="$store.projects.toggleProjectSelection(project.name)">
+                                                </td>
+                                                <td>
+                                                    <span class="project-color-ball"
+                                                        :style="project.color ? { backgroundColor: project.color } : { border: '1px solid var(--color-border)' }"></span>
+                                                </td>
+                                                <td>
+                                                    <div class="chat-info">
+                                                        <span class="chat-title" x-text="project.title"></span>
+                                                        <span class="show-mobile-only muted" x-text="project.path"
+                                                            style="font-size: 0.75rem; display: block; margin-top: 4px;"></span>
+                                                    </div>
+                                                </td>
+                                                <td class="projects-folder-name hide-mobile">/<span
+                                                        x-text="project.name"></span></td>
+                                                <td class="hide-mobile">
+                                                    <span
+                                                        x-text="project.created_at ? new Date(project.created_at).toLocaleDateString(undefined, {month: 'short', day: 'numeric', year: 'numeric'}) : '—'"
+                                                        :title="project.created_at ? new Date(project.created_at).toLocaleString() : ''"></span>
+                                                </td>
+                                                <td class="hide-mobile">
+                                                    <span
+                                                        x-text="project.updated_at ? new Date(project.updated_at).toLocaleDateString(undefined, {month: 'short', day: 'numeric', year: 'numeric'}) : '—'"
+                                                        :title="project.updated_at ? new Date(project.updated_at).toLocaleString() : ''"></span>
+                                                </td>
+                                                <td @click.stop>
+                                                    <div class="scheduler-task-actions">
+                                                        <button class="btn btn-icon"
+                                                            @click="$store.projects.openEditModal(project.name)"
+                                                            title="Edit">
+                                                            <span class="material-symbols-outlined">edit</span>
+                                                        </button>
+                                                        <button class="btn btn-icon text-danger"
+                                                            @click="$store.projects.deleteProject(project.name)"
+                                                            title="Delete">
+                                                            <span class="material-symbols-outlined">delete</span>
+                                                        </button>
+                                                    </div>
+                                                </td>
+                                            </tr>
+                                        </template>
+                                    </tbody>
+                                </table>
+                            </div>
+
+                            <!-- Floating Action Bar for Mass Deletion -->
+                            <template x-if="$store.projects.selectedProjects.length > 0">
+                                <div class="floating-mass-action-bar" x-cloak>
+                                    <div class="selection-count">
+                                        <span x-text="$store.projects.selectedProjects.length"></span> projects
+                                        selected
+                                    </div>
+                                    <button class="btn btn-danger" @click="$store.projects.deleteSelectedProjects()">
+                                        <span class="material-symbols-outlined">delete</span>
+                                        Delete Selected
+                                    </button>
+                                    <button class="btn btn-ghost" @click="$store.projects.deselectAllProjects()"
+                                        title="Clear selection">
+                                        <span class="material-symbols-outlined">close</span>
+                                    </button>
+                                </div>
+                            </template>
+
+                            <!-- Empty State -->
+                            <div class="projects-empty-state"
+                                x-show="$store.projects && $store.projects.projectList.length === 0">
+                                <div class="projects-empty-icon">
+                                    <span class="icon material-symbols-outlined">folder_off</span>
+                                </div>
+                                <div class="projects-empty-text">No projects yet</div>
+                                <button class="btn btn-ok" @click="$store.projects.openCreateModal()">
+                                    <span class="material-symbols-outlined">add</span> Create your first
+                            </div>
+
+                            <!-- Floating Action Bar for Project Mass Deletion -->
+                            <template x-if="$store.projects && $store.projects.selectedProjects.length > 0">
+                                <div class="floating-mass-action-bar" x-cloak>
+                                    <div class="selection-count">
+                                        <span x-text="$store.projects.selectedProjects.length"></span> projects
+                                        selected
+                                    </div>
+                                    <button class="btn btn-danger" @click="$store.projects.deleteSelectedProjects()">
+                                        <span class="material-symbols-outlined">delete_sweep</span>
+                                        Delete Selected
+                                    </button>
+                                    <button class="btn btn-ghost" @click="$store.projects.selectedProjects = []"
+                                        title="Clear selection">
+                                        <span class="material-symbols-outlined">close</span>
+                                    </button>
+                                </div>
+                            </template>
+                        </div>
+                    </div>

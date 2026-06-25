@@ -1,0 +1,14 @@
+{
+    "tools": [
+        "create_skill",
+        "mcp_onboard",
+        "read_file",
+        "write_to_file",
+        "terminal",
+        "code_execution_tool",
+        "browser_agent"
+    ],
+    "skills": [
+        "meta/best-of-breed-merger"
+    ]
+}

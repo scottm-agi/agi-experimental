@@ -1,0 +1,292 @@
+<html>
+
+<head>
+  <!-- Wrapper composes existing sidebar components -->
+</head>
+
+<body>
+  <div x-data>
+    <template x-if="$store.sidebar">
+      <div id="left-panel" class="panel" :class="{ 'hidden': !$store.sidebar.isOpen }"
+        :style="{ width: $store.sidebar.width + 'px', minWidth: $store.sidebar.width + 'px' }">
+
+        <!-- Resize Handle -->
+        <div class="sidebar-resizer" @mousedown.prevent="$store.sidebar.startResize($event)"></div>
+
+        <!-- Fixed Header (Logo/Hamburger) - Always visible, not a tray -->
+        <div class="sidebar-header-fixed">
+          <x-component path="sidebar/top-section/header-icons.html"></x-component>
+        </div>
+
+        <!-- Scrollable Tray Area -->
+        <div id="sidebar-trays">
+
+          <!-- Actions Tray -->
+          <div class="tray-section" x-data="{ id: 'actions' }"
+            :class="{ 'flex-grow': $store.sidebar.isSectionOpen(id) }">
+            <div class="section-header section-header-collapsible" @click="$store.sidebar.toggleSection(id)">
+              <span>Actions</span>
+              <span class="material-symbols-outlined"
+                :class="{ 'rotate-180': $store.sidebar.isSectionOpen(id) }">expand_more</span>
+            </div>
+            <div class="tray-body collapse" :class="{ 'show': $store.sidebar.isSectionOpen(id) }">
+              <div class="tray-content">
+                <x-component path="sidebar/top-section/quick-actions.html"></x-component>
+              </div>
+            </div>
+          </div>
+
+          <!-- Project Search Tray or Helper -->
+          <div class="tray-section" x-data="{ id: 'search' }" :class="{ 'flex-grow-0': true }">
+            <div class="tray-content" style="padding: 0 var(--spacing-sm);">
+              <x-component path="sidebar/project-search/project-search.html"></x-component>
+            </div>
+          </div>
+
+          <!-- Chats Tray -->
+          <div class="tray-section" x-data="{ id: 'chats' }" :class="{ 'flex-grow': $store.sidebar.isSectionOpen(id) }">
+            <div class="section-header section-header-collapsible" @click="$store.sidebar.toggleSection(id)">
+              <div style="display: flex; align-items: center; gap: 0.5em;">
+                <span>Chats</span>
+                <span class="text-muted" x-show="$store.chats && $store.chats.getFilteredContexts().length > 0"
+                  x-text="'(' + $store.chats.getFilteredContexts().length + ')'"
+                  style="font-weight: normal; font-size: 0.9em;"></span>
+              </div>
+              <div style="display: flex; align-items: center; gap: 12px;">
+                <!-- New Chat Button -->
+                <button class="icon-btn" @click.stop="$store.chats.newChat()"
+                  data-tooltip="Start a fresh conversation and clear working context.">
+                  <span class="material-symbols-outlined">add</span>
+                </button>
+                <span class="material-symbols-outlined"
+                  :class="{ 'rotate-180': $store.sidebar.isSectionOpen(id) }">expand_more</span>
+              </div>
+            </div>
+            <div class="tray-body collapse" :class="{ 'show': $store.sidebar.isSectionOpen(id) }">
+              <x-component path="sidebar/chats/chats-list.html"></x-component>
+            </div>
+          </div>
+
+          <!-- Chat Queue Tray -->
+          <div class="tray-section" x-data="{ id: 'tasks' }" :class="{ 'flex-grow': $store.sidebar.isSectionOpen(id) }">
+            <div class="section-header section-header-collapsible" @click="$store.sidebar.toggleSection(id)">
+              <div style="display: flex; align-items: center; gap: 0.5em;">
+                <span>Chat Queue</span>
+                <span class="text-muted" x-show="$store.tasks && $store.tasks.hasTasks()"
+                  x-text="'(' + $store.tasks.progress.completed + '/' + $store.tasks.progress.total + ')'"
+                  style="font-weight: normal; font-size: 0.9em;"></span>
+              </div>
+              <div style="display: flex; align-items: center; gap: 12px;">
+                <!-- Queue Badge -->
+                <span class="badge badge-primary" x-show="$store.tasks && $store.tasks.getQueueLength() > 0"
+                  x-text="$store.tasks.getQueueLength() + ' queued'"></span>
+                <span class="material-symbols-outlined"
+                  :class="{ 'rotate-180': $store.sidebar.isSectionOpen(id) }">expand_more</span>
+              </div>
+            </div>
+            <div class="tray-body collapse" :class="{ 'show': $store.sidebar.isSectionOpen(id) }">
+              <x-component path="sidebar/tasks/tasks-list.html"></x-component>
+            </div>
+          </div>
+
+          <!-- Scheduled Tasks Tray -->
+          <div class="tray-section" x-data="{ id: 'scheduled' }"
+            :class="{ 'flex-grow': $store.sidebar.isSectionOpen(id) }">
+            <div class="section-header section-header-collapsible" @click="$store.sidebar.toggleSection(id)">
+              <div style="display: flex; align-items: center; gap: 0.5em;">
+                <span>Scheduled Tasks</span>
+                <span class="text-muted" x-show="$store.scheduledTasks && $store.scheduledTasks.hasTasks()"
+                  x-text="'(' + $store.scheduledTasks.tasks.length + ')'"
+                  style="font-weight: normal; font-size: 0.9em;"></span>
+              </div>
+              <div style="display: flex; align-items: center; gap: 12px;">
+                <!-- Global Task Toggle -->
+                <div class="flex items-center gap-2" @click.stop>
+                  <label class="switch-sm"
+                    data-tooltip="Enable/Disable all automated tasks (Scheduled, Ad-Hoc, Planned)">
+                    <input type="checkbox" :checked="$store.scheduledTasks.tasksEnabled"
+                      @change="$store.scheduledTasks.toggleTasksEnabled()">
+                    <span class="slider-sm round"></span>
+                  </label>
+                </div>
+                <!-- Create Task Button -->
+                <button class="icon-btn" @click.stop="$store.scheduledTasks.openSchedulerSettings()"
+                  data-tooltip="Open the task scheduler to create and manage automated workflows.">
+                  <span class="material-symbols-outlined">add</span>
+                </button>
+                <span class="material-symbols-outlined"
+                  :class="{ 'rotate-180': $store.sidebar.isSectionOpen(id) }">expand_more</span>
+              </div>
+            </div>
+            <div class="tray-body collapse" :class="{ 'show': $store.sidebar.isSectionOpen(id) }">
+              <x-component path="sidebar/scheduled-tasks/scheduled-tasks-list.html"></x-component>
+            </div>
+          </div>
+
+          <!-- Preferences Tray -->
+          <div class="tray-section preferences-tray mobile-hidden" x-show="$store.sidebar.preferencesOpen" x-collapse
+            x-data="{ id: 'preferences' }" :class="{ 'flex-grow': $store.sidebar.isSectionOpen(id) }">
+            <div class="section-header section-header-collapsible" @click="$store.sidebar.toggleSection(id)">
+              <span>Preferences</span>
+              <span class="material-symbols-outlined"
+                :class="{ 'rotate-180': $store.sidebar.isSectionOpen(id) }">expand_more</span>
+            </div>
+
+            <div class="tray-body collapse" :class="{ 'show': $store.sidebar.isSectionOpen(id) }">
+              <div class="tray-content">
+                <x-component path="sidebar/bottom/sidebar-bottom.html"></x-component>
+              </div>
+            </div>
+          </div>
+
+        </div>
+      </div>
+    </template>
+  </div>
+
+  <style>
+    /* Left Panel styles - shadcn New York theme */
+    #left-panel {
+      background-color: var(--color-panel);
+      border-right: 1px solid var(--color-border);
+      box-sizing: border-box;
+      display: flex;
+      flex-direction: column;
+      transition: all var(--transition-speed) ease-in-out;
+      width: 250px;
+      min-width: 250px;
+      color: var(--color-text);
+      box-shadow: var(--shadow-sm);
+      user-select: none;
+      -webkit-user-select: none;
+      height: 100vh;
+      overflow: hidden;
+    }
+
+    #left-panel.hidden {
+      margin-left: -250px;
+    }
+
+    .sidebar-header-fixed {
+      flex-shrink: 0;
+      /* Padding matches sidebar-top-wrapper from before */
+    }
+
+    /* Main container for all trays */
+    #sidebar-trays {
+      display: flex;
+      flex-direction: column;
+      flex: 1;
+      min-height: 0;
+      /* Crucial for flex distribution without infinite growth */
+      overflow-y: hidden;
+      padding: var(--spacing-sm);
+    }
+
+    /* Common Tray Section Styles */
+    .tray-section {
+      display: flex;
+      flex-direction: column;
+      border-bottom: 1px solid var(--color-border);
+      min-height: min-content;
+      transition: flex-grow 0.3s ease;
+      /* Smooth weight redistribution */
+    }
+
+    /* When a tray is "open" (via Alpine class), it gets flex-grow */
+    .tray-section.flex-grow {
+      flex-grow: 1;
+      min-height: 160px;
+      /* Ensure space for header + ~3 items */
+    }
+
+    .tray-body {
+      overflow-y: auto;
+      min-height: 0;
+      opacity: 0;
+      transition: opacity 0.2s ease;
+      flex: 1 1 0%;
+      /* Allow shrinking and growing relative to peers */
+    }
+
+    .tray-body.show {
+      opacity: 1;
+      flex: 1 1 0%;
+      min-height: 120px;
+      overflow-y: auto;
+      /* Restore scrolling */
+      /* Consistent minimum expansion for content */
+    }
+
+    /* Scrollbar styling for trays */
+    .tray-body {
+      scrollbar-width: thin;
+      scrollbar-color: var(--color-border) transparent;
+    }
+
+    .tray-body::-webkit-scrollbar {
+      width: 4px;
+    }
+
+    .tray-body::-webkit-scrollbar-track {
+      background: transparent;
+    }
+
+    .tray-body::-webkit-scrollbar-thumb {
+      background-color: var(--color-border);
+      border-radius: 4px;
+    }
+
+    /* Common section header styling (Chats, Tasks) - shadcn style */
+    .section-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 6px;
+      padding: 0.5rem 1.5rem 0.5rem var(--spacing-md);
+      -webkit-user-select: none;
+      user-select: none;
+      font-size: var(--font-size-small);
+      font-weight: 500;
+      color: var(--color-muted-foreground);
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+    }
+
+    /* Collapsible section headers (Tasks) */
+    .section-header-collapsible {
+      cursor: pointer;
+      transition: background-color 0.15s ease;
+    }
+
+    .section-header-collapsible:hover {
+      background-color: var(--color-background-hover);
+    }
+
+    /* Rotate chevron */
+    .rotate-180 {
+      transform: rotate(180deg);
+      transition: transform 0.2s;
+    }
+
+    @media (max-width: 768px) {
+      #left-panel {
+        position: fixed;
+        left: 0;
+        top: 0;
+        bottom: 0;
+        width: 250px !important;
+        /* Force width */
+        min-width: 250px;
+        z-index: 1003;
+        transition: all var(--transition-speed) ease-in-out;
+      }
+
+      #left-panel.hidden {
+        margin-left: -250px;
+      }
+    }
+  </style>
+</body>
+
+</html>

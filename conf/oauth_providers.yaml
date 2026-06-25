@@ -1,0 +1,30 @@
+# Universal OAuth Provider Registry
+# This file contains default endpoints and scopes for known OAuth vendors.
+# Agents can extend this list after researching new vendors.
+
+GOOGLE:
+  auth_url: "https://accounts.google.com/o/oauth2/v2/auth"
+  token_url: "https://oauth2.googleapis.com/token"
+  default_scopes:
+    - "https://www.googleapis.com/auth/chat.spaces.readonly"
+    - "https://www.googleapis.com/auth/chat.messages"
+  documentation_url: "https://developers.google.com/workspace/chat/authenticate-authorize"
+
+ZOHO:
+  auth_url: "https://accounts.zoho.com/oauth/v2/auth"
+  token_url: "https://accounts.zoho.com/oauth/v2/token"
+  default_scopes:
+    - "ZohoCRM.modules.ALL"
+    - "ZohoCRM.settings.ALL"
+  authorization_params:
+    prompt: "consent"
+    access_type: "offline"
+  documentation_url: "https://www.zoho.com/crm/developer/docs/api/v2/oauth-overview.html"
+
+MICROSOFT:
+  auth_url: "https://login.microsoftonline.com/common/oauth2/v2.0/authorize"
+  token_url: "https://login.microsoftonline.com/common/oauth2/v2.0/token"
+  default_scopes:
+    - "https://graph.microsoft.com/User.Read"
+    - "offline_access"
+  documentation_url: "https://learn.microsoft.com/en-us/azure/active-directory/develop/v2-oauth2-auth-code-flow"

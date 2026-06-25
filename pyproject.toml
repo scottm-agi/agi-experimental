@@ -1,0 +1,13 @@
+[tool.pytest.ini_options]
+# RCA-340: Fix cross-test sys.path pollution.
+#
+# Problem: ~50 test files do sys.path.insert(0, '..') at module level,
+# inserting the python/ subdirectory into sys.path. This shadows the
+# qualified `python.*` namespace — later tests that do
+# `from python.helpers.X import Y` get `(unknown location)` errors.
+#
+# Solution:
+# 1. pythonpath = ["."] ensures the project root is always on sys.path
+# 2. The conftest.py cleanup hook removes stale python/ entries per-test
+pythonpath = ["."]
+testpaths = ["python/tests"]

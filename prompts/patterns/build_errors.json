@@ -1,0 +1,383 @@
+{
+  "nextjs": {
+    "prerendering_usecontext": {
+      "signatures": [
+        "at t.useContext",
+        "app-page.runtime.prod.js",
+        "at renderToReadableStream",
+        "Cannot read properties of null (reading 'useContext')"
+      ],
+      "root_cause": "Next.js is attempting to statically prerender a page that uses React hooks (useContext, useState). This happens because page.tsx or its imports use client-side hooks without being marked as client components. Do NOT add 'use client' to layout.tsx — that breaks App Router's server component model.",
+      "fix": "Extract ALL hook-using code (useState, useContext, useEffect) into separate component files with 'use client' at the top, then import those client components into page.tsx. The page.tsx itself stays as a Server Component. Do NOT add 'use client' to layout.tsx. For pages that ONLY use dynamic data fetching (cookies, headers), use `export const dynamic = 'force-dynamic'` instead. CRITICAL: NEVER add `export const dynamic = 'force-dynamic'` to a file that has 'use client' — this causes an HTTP 500. The dynamic export MUST ONLY be in server component files (files WITHOUT 'use client'). If you need both client-side hooks AND dynamic rendering, create a server component wrapper with the dynamic export that imports the client component.",
+      "framework": "Next.js 13+ (App Router)",
+      "kb_reference": "nextjs_app_router#server-vs-client-components",
+      "prevention": "When creating a component that uses React hooks (useState, useContext, useEffect), ALWAYS add 'use client' as the FIRST line of that component file BEFORE writing code. Keep page.tsx files as Server Components and import client components into them. Only use `export const dynamic = 'force-dynamic'` for pages that use dynamic server APIs (cookies, headers, unstable_noStore) without React hooks.",
+      "context_signatures_note": "Removed broad signatures (Error occurred prerendering page, Prerender error) that matched any prerendering failure. ITR-42 F-2 fix."
+    },
+    "use_client_missing": {
+      "signatures": [
+        "Cannot read properties of null (reading 'useContext')",
+        "createContext only works in Client Components",
+        "useState only works in Client Components",
+        "useEffect only works in Client Components"
+      ],
+      "root_cause": "A Server Component is importing or using React hooks (useState, useContext, useEffect). In Next.js App Router, components using hooks MUST have 'use client' at the top.",
+      "fix": "Add 'use client'; as the FIRST line of the file. Do NOT add it to layout.tsx — layout files in App Router MUST remain Server Components. Instead, extract the hook-using code into a separate client component file and import it into layout.tsx.",
+      "layout_warning": "CRITICAL: NEVER add 'use client' to layout.tsx. Layout files in App Router MUST be Server Components. If layout.tsx imports a component that uses hooks, that COMPONENT needs 'use client', not the layout.",
+      "framework": "Next.js 13+ (App Router)",
+      "kb_reference": "nextjs_app_router#server-vs-client-components",
+      "prevention": "When creating ANY component that uses React hooks (useState, useEffect, useContext, useRef, etc.), ALWAYS add 'use client'; as the VERY FIRST line of that file BEFORE writing the component code. NEVER add 'use client' to layout.tsx — keep layouts as Server Components and extract interactive parts into separate client component files."
+    },
+    "html_outside_document": {
+      "signatures": [
+        "<Html> should not be imported outside of pages/_document",
+        "Html should not be used in the App Router",
+        "<Head> should not be imported outside of pages/_document"
+      ],
+      "root_cause": "TWO possible causes: (1) User code imports <Html>/<Head> from 'next/document' in an App Router project. (2) INTERNAL PRERENDERING ISSUE: Next.js 14.2.x generates internal Pages Router fallback error pages (_error.js, _document.js) in .next/server/pages/ during static prerendering, even in pure App Router projects with NO pages/ directory. The error comes from node_modules/next/dist/pages/_error.js, NOT from user code. If `rg next/document src/` returns nothing, this is case (2).",
+      "fix": "FIRST: Run `rg next/document src/` to check if user code has the import. IF FOUND (case 1): Remove all imports from next/document. Use lowercase <html>/<body> tags in app/layout.tsx. Use the metadata export for head tags. IF NOT FOUND (case 2 — internal prerendering): This is a Next.js 14.2.x framework issue. The error comes from internal Pages Router fallback files, not user code. Fix by adding `output: \"standalone\"` to next.config.mjs which changes the build output mode and avoids the Pages Router fallback. Alternatively, create a minimal app/not-found.tsx that returns a proper 404 page, which prevents Next.js from needing the Pages Router error fallback. CRITICAL: Do NOT loop searching for next/document in user code if rg already returned empty — the error is from Next.js internals.",
+      "loop_prevention": "If `rg next/document src/` returns nothing, STOP searching. The error is from Next.js internals (.next/server/pages/). Apply the next.config.mjs fix immediately.",
+      "framework": "Next.js 14.2.x (App Router)",
+      "kb_reference": "nextjs_app_router#never-use-pages-router-apis-in-app-router",
+      "prevention": "NEVER import from 'next/document' in App Router projects. Use lowercase <html>, <head>, <body> tags in app/layout.tsx. Use the `metadata` export or `generateMetadata()` for head tags. If migrating from Pages Router, remove ALL 'next/document' imports immediately."
+    },
+    "module_not_found": {
+      "signatures": [
+        "Module not found: Can't resolve",
+        "Cannot find module",
+        "Module not found: Error: Can't resolve"
+      ],
+      "root_cause": "A dependency is imported in code but not installed in node_modules. This happens when: (1) package was never added to package.json, (2) npm install failed silently, or (3) the package name is wrong.",
+      "fix": "1. Check if the package is in package.json. 2. Run 'npm install' to ensure all deps are installed. 3. If the package is not in package.json, add it with 'npm install <package-name>'. 4. If using a specific version, pin it: 'npm install <package>@<version>'.",
+      "framework": "Next.js / Node.js",
+      "prevention": "After adding any import statement, immediately run `npm install <package-name>` to add the dependency to package.json. Check package.json dependencies BEFORE first build to ensure all imported packages are listed."
+    },
+    "dynamic_server_usage": {
+      "signatures": [
+        "Dynamic server usage: Page couldn't be rendered statically",
+        "Dynamic server usage: no-store",
+        "Error: Dynamic server usage"
+      ],
+      "root_cause": "A page marked for static generation is using dynamic features (cookies(), headers(), fetch with no-store). Pages using these features must opt into dynamic rendering.",
+      "fix": "Add 'export const dynamic = \"force-dynamic\"' or 'export const revalidate = 0' at the top of the page file to opt into dynamic rendering. CRITICAL: ONLY add this in server component files (files WITHOUT 'use client'). If the file has 'use client', do NOT add `export const dynamic` — it will cause an HTTP 500 error. Instead, create a separate server component wrapper that has the dynamic export and imports the client component.",
+      "framework": "Next.js 13+ (App Router)",
+      "prevention": "When creating a page that uses cookies(), headers(), or fetch with { cache: 'no-store' }, ALWAYS add `export const dynamic = 'force-dynamic';` at the top of the page file. Check for dynamic API usage BEFORE the first build."
+    },
+    "unescaped_entities": {
+      "signatures": [
+        "react/no-unescaped-entities",
+        "`'` can be escaped with `&apos;`",
+        "`\"` can be escaped with `&quot;`"
+      ],
+      "root_cause": "JSX contains unescaped HTML entities (quotes, apostrophes). React/ESLint requires these to be escaped or wrapped in JS expressions.",
+      "fix": "Replace ' with &apos; or {\"'\"} and \" with &quot; or {'\"'} in JSX text content. Alternatively, wrap the text in a JS expression: {'text with \"quotes\"'}.",
+      "framework": "React / Next.js",
+      "prevention": "When writing JSX text content containing apostrophes or quotes, ALWAYS use HTML entities (&apos; for ', &quot; for \") or wrap text in JS expressions: {'text with \"quotes\"'}. Never use raw ' or \" in JSX text."
+    }
+  },
+  "typescript": {
+    "type_mismatch": {
+      "signatures": [
+        "Type error: Type",
+        "is not assignable to type",
+        "Property 'params' is missing"
+      ],
+      "root_cause": "TypeScript type mismatch — often caused by inconsistent type definitions across files (e.g., 'Business' in one file vs 'Lead' in another) or missing interface properties.",
+      "fix": "1. Check all type definitions across the project for consistency. 2. If multiple names exist for the same concept, consolidate to ONE canonical type. 3. Use 'grep -r \"interface\\|type \" src/' to find all type definitions and reconcile them.",
+      "framework": "TypeScript"
+    },
+    "implicit_any": {
+      "signatures": [
+        "has an implicit 'any' type",
+        "Parameter 'e' implicitly has an 'any' type",
+        "noImplicitAny"
+      ],
+      "root_cause": "TypeScript strict mode requires explicit type annotations for parameters and variables that can't be inferred.",
+      "fix": "Add explicit type annotations: (e: Error), (data: any), (event: React.ChangeEvent<HTMLInputElement>). For catch blocks: catch (e: unknown) { const err = e as Error; }.",
+      "framework": "TypeScript",
+      "kb_reference": "react_typescript#event-handler-typing"
+    },
+    "type_contract_mismatch": {
+      "signatures": [
+        "is missing the following properties from type",
+        "does not exist on type '",
+        "is not assignable to type '"
+      ],
+      "root_cause": "Mock data objects or component props are missing required fields from a shared interface. This typically happens when a type is defined in src/types/index.ts but pages/components create data objects without all required fields.",
+      "fix": "1. Read src/types/index.ts to see the FULL interface definition. 2. For mock/display data, use Partial<TypeName> instead of the full type. 3. For component props, make optional fields with '?' suffix. 4. NEVER remove required fields from the interface — fix the consumers instead.",
+      "framework": "TypeScript",
+      "kb_reference": "react_typescript#extending-html-element-props"
+    },
+    "possibly_null": {
+      "signatures": [
+        "is possibly 'null'",
+        "is possibly 'undefined'",
+        "Object is possibly 'null'",
+        "Object is possibly 'undefined'"
+      ],
+      "root_cause": "Accessing properties on a variable that TypeScript knows could be null/undefined. This happens when useState<T | null>(null) is used but the template does not guard against null.",
+      "fix": "Add null guards: 1. Early return: if (!variable) return <Loading />; 2. Optional chaining: variable?.property 3. Non-null assertion (last resort): variable!.property 4. For useState, narrow the type after a loading check.",
+      "framework": "TypeScript / React",
+      "kb_reference": "common_pitfalls#object-is-possibly-nullundefined"
+    }
+  },
+  "prisma": {
+    "global_this_singleton": {
+      "signatures": [
+        "does not exist on type 'typeof globalThis'",
+        "Property 'prisma' does not exist on type 'typeof globalThis'"
+      ],
+      "root_cause": "The Prisma singleton file (typically src/lib/prisma.ts) directly accesses `globalThis.prisma` without a proper TypeScript global augmentation. In TypeScript, you must use `declare global { var prisma: ... }` with `var` (not let or const) to augment the global scope. Using `let` or `const` in a `declare global` block does NOT augment `typeof globalThis`.",
+      "fix": "Replace the Prisma singleton with the canonical Next.js pattern. The file MUST use `var` (not let or const) in the `declare global` block, and MUST include `// eslint-disable-next-line no-var` to prevent ESLint from flagging the required `var` keyword:\n\n```typescript\nimport { PrismaClient } from '@prisma/client';\n\nconst prismaClientSingleton = () => new PrismaClient();\n\ndeclare global {\n  // eslint-disable-next-line no-var\n  var prisma: undefined | ReturnType<typeof prismaClientSingleton>;\n}\n\nconst prisma = globalThis.prisma ?? prismaClientSingleton();\n\nif (process.env.NODE_ENV !== 'production') globalThis.prisma = prisma;\n\nexport default prisma;\n```\n\nCRITICAL: Using `let` instead of `var` in `declare global` does NOT work — TypeScript requires `var` for global scope augmentation. The `// eslint-disable-next-line no-var` comment is mandatory to prevent ESLint from rejecting the `var` keyword.",
+      "framework": "Next.js + Prisma (any version)",
+      "kb_domain": "build",
+      "kb_reference": "prisma_patterns#nextjs-singleton-pattern"
+    },
+    "client_not_generated": {
+      "signatures": [
+        "PrismaClient is not a constructor",
+        "@prisma/client did not initialize yet",
+        "Cannot find module '.prisma/client'",
+        "Cannot find module '@prisma/client'"
+      ],
+      "root_cause": "Prisma Client was not generated after schema changes. The generated client is not committed to git — it must be regenerated after cloning or schema changes.",
+      "fix": "Run 'npx prisma generate' after any schema change. If the database doesn't exist yet, run 'npx prisma db push' (for development) or 'npx prisma migrate deploy' (for production).",
+      "framework": "Prisma"
+    },
+    "constructor_validation": {
+      "signatures": [
+        "PrismaClientConstructorValidationError",
+        "Invalid `prisma` invocation",
+        "Unknown arg"
+      ],
+      "root_cause": "Prisma Client constructor received invalid options. This typically happens during Next.js static generation when PrismaClient is instantiated at build time with incompatible options or when the engine binary doesn't match the build environment.",
+      "fix": "Use a Proxy singleton pattern in lib/prisma.ts to defer PrismaClient instantiation until runtime: `const prisma = global.prisma || new PrismaClient(); if (process.env.NODE_ENV !== 'production') global.prisma = prisma;`. For Next.js, also add `export const dynamic = 'force-dynamic'` to pages that use Prisma.",
+      "framework": "Prisma 5+"
+    },
+    "initialization_error": {
+      "signatures": [
+        "PrismaClientInitializationError",
+        "Unable to find a matching engine binary",
+        "Unable to require `.prisma/client/default`"
+      ],
+      "root_cause": "Prisma engine binary was not found or is incompatible with the current platform. This often happens in Docker/CI builds where the build platform differs from runtime, or when prisma generate was not run.",
+      "fix": "1. Run 'npx prisma generate' to regenerate the client. 2. In Docker builds, ensure the Prisma binary target matches: add `binaryTargets = [\"native\", \"linux-musl-openssl-3.0.x\"]` to schema.prisma generator block. 3. Verify DATABASE_URL is set correctly.",
+      "framework": "Prisma",
+      "kb_domain": "build",
+      "kb_reference": "prisma_patterns#docker-ci-build-configuration"
+    },
+    "v7_adapter_required": {
+      "signatures": [
+        "datasource property `url` is no longer supported in schema files",
+        "Move connection URLs for Migrate to `prisma.config.ts`",
+        "pass either `adapter` for a direct database connection"
+      ],
+      "root_cause": "Prisma 7 removed direct database URL from schema.prisma datasource blocks. PrismaClient now requires a driver adapter (e.g., @prisma/adapter-pg) to connect to databases. The `url` field must be moved to prisma.config.ts.",
+      "fix": "1. Install adapter: 'npm install @prisma/adapter-pg pg'. 2. Remove `url = env(\"DATABASE_URL\")` from schema.prisma datasource block. 3. Create prisma.config.ts for migrations. 4. Update PrismaClient: `const adapter = new PrismaPg({ connectionString: process.env.DATABASE_URL! }); const prisma = new PrismaClient({ adapter });`",
+      "framework": "Prisma 7+",
+      "kb_domain": "build",
+      "kb_reference": "prisma_patterns#prisma-7-migration-guide"
+    },
+    "v7_output_required": {
+      "signatures": [
+        "output field is now required in the generator block",
+        "Prisma Client will no longer be generated in `node_modules`"
+      ],
+      "root_cause": "Prisma 7 requires an explicit `output` path in the generator block. The client is no longer generated into node_modules by default.",
+      "fix": "Add `output = \"../src/generated/prisma\"` (or your preferred path) to the generator block in schema.prisma. Then update imports: `import { PrismaClient } from './generated/prisma/client'` instead of `from '@prisma/client'`.",
+      "framework": "Prisma 7+",
+      "kb_domain": "build",
+      "kb_reference": "prisma_patterns#prisma-7-migration-guide"
+    },
+    "v7_provider_rename": {
+      "signatures": [
+        "prisma-client-js provider will be removed in future releases",
+        "Upgrade to the new `prisma-client` provider"
+      ],
+      "root_cause": "Prisma 7 renamed the generator provider from 'prisma-client-js' to 'prisma-client'. The old provider is deprecated and will be removed.",
+      "fix": "In schema.prisma, change `provider = \"prisma-client-js\"` to `provider = \"prisma-client\"`. Also remove any `engineType` attributes as the new Rust-free client doesn't use engine binaries.",
+      "framework": "Prisma 7+",
+      "kb_domain": "build",
+      "kb_reference": "prisma_patterns#prisma-7-migration-guide"
+    },
+    "middleware_removed": {
+      "signatures": [
+        "prisma.$use is no longer supported",
+        "$use middleware has been removed",
+        "$use is not a function"
+      ],
+      "root_cause": "Prisma 7 removed the $use() middleware API. All middleware logic must be migrated to Prisma Client Extensions ($extends).",
+      "fix": "Replace `prisma.$use(async (params, next) => { ... })` with Prisma Client Extensions: `const xprisma = prisma.$extends({ query: { $allOperations({ args, query }) { return query(args) } } })`.",
+      "framework": "Prisma 7+",
+      "kb_domain": "build",
+      "kb_reference": "prisma_patterns#prisma-7-migration-guide"
+    }
+  },
+  "system": {
+    "enospc": {
+      "signatures": [
+        "ENOSPC",
+        "no space left on device",
+        "ENOSPC: System limit for number of file watchers"
+      ],
+      "root_cause": "Disk is full, inode limit reached, or the system file watcher limit has been exceeded. Common in containers with limited disk or when node_modules grows too large.",
+      "fix": "1. Kill orphan node/next processes: `pkill -f 'node|next'`. 2. Clear only caches (NOT full directories): `rm -rf node_modules/.cache .next/cache`. 3. For file watcher limits: `echo fs.inotify.max_user_watches=524288 | sudo tee -a /etc/sysctl.conf && sudo sysctl -p`. 4. If in Docker, increase container disk allocation.",
+      "framework": "System / Node.js"
+    },
+    "heap_oom": {
+      "signatures": [
+        "JavaScript heap out of memory",
+        "heap limit Allocation failed",
+        "FATAL ERROR: Reached heap limit",
+        "FATAL ERROR: CALL_AND_RETRY_LAST Allocation failed"
+      ],
+      "root_cause": "Node.js process exceeded its default memory limit (~1.7GB). Large builds (Next.js with many pages, Webpack bundling) can exhaust heap memory.",
+      "fix": "1. Set `NODE_OPTIONS='--max-old-space-size=4096'` before the build command. 2. Kill orphan node processes that may be consuming memory. 3. For Next.js, use `output: 'standalone'` in next.config.js to reduce build memory. 4. Consider splitting large builds into smaller chunks.",
+      "framework": "Node.js"
+    }
+  },
+  "vite": {
+    "process_not_defined": {
+      "signatures": [
+        "process is not defined",
+        "process.env is not defined"
+      ],
+      "root_cause": "Vite does not expose Node.js globals like 'process' in the browser. Environment variables must use import.meta.env.VITE_* prefix.",
+      "fix": "Replace process.env.VARIABLE with import.meta.env.VITE_VARIABLE in client code. Server-side code (API routes, SSR) can still use process.env. Make sure all client-facing env vars have the VITE_ prefix.",
+      "framework": "Vite"
+    }
+  },
+  "react": {
+    "prop_conflict_html_intrinsic": {
+      "signatures": [
+        "does not exist on type 'IntrinsicAttributes",
+        "Property 'size' does not exist on type",
+        "Type '{ children:"
+      ],
+      "root_cause": "Custom component props conflict with native HTML element attributes. Common example: defining 'size' as a string union while extending React.ButtonHTMLAttributes which already has 'size' as a number.",
+      "fix": "Use Omit<> to exclude conflicting native props: `interface ButtonProps extends Omit<React.ButtonHTMLAttributes<HTMLButtonElement>, 'size'> { size?: 'sm' | 'md' | 'lg'; }`. This removes the native 'size' number type and replaces it with your custom string union.",
+      "framework": "React + TypeScript",
+      "kb_reference": "common_pitfalls#html-intrinsic-attribute-conflicts"
+    }
+  },
+  "tailwind": {
+    "content_empty": {
+      "signatures": [
+        "No utility classes were detected in your source files",
+        "warn - No utility classes were detected"
+      ],
+      "root_cause": "Tailwind CSS content array in tailwind.config doesn't include the correct file paths where utility classes are used.",
+      "fix": "Update tailwind.config.ts content array to include: ['./src/**/*.{js,ts,jsx,tsx,mdx}', './app/**/*.{js,ts,jsx,tsx,mdx}']",
+      "framework": "Tailwind CSS 3+"
+    },
+    "missing_theme_colors": {
+      "signatures": [
+        "border-border",
+        "bg-background",
+        "text-foreground",
+        "is not defined in your tailwind.config",
+        "is not defined in theme",
+        "Could not resolve value for CSS property",
+        "referencing 'var(--border)'",
+        "referencing 'var(--background)'"
+      ],
+      "root_cause": "The project uses shadcn/ui-style CSS variable theming (e.g., border-border, bg-background) but the tailwind.config does not extend the theme with these CSS variable colors. Without explicit theme mapping, Tailwind cannot resolve the utility class to a color value.",
+      "fix": "Add CSS variable color mappings to tailwind.config.ts in theme.extend.colors: `border: 'hsl(var(--border))', background: 'hsl(var(--background))', foreground: 'hsl(var(--foreground))', primary: { DEFAULT: 'hsl(var(--primary))', foreground: 'hsl(var(--primary-foreground))' }, secondary: { DEFAULT: 'hsl(var(--secondary))', foreground: 'hsl(var(--secondary-foreground))' }, muted: { DEFAULT: 'hsl(var(--muted))', foreground: 'hsl(var(--muted-foreground))' }, accent: { DEFAULT: 'hsl(var(--accent))', foreground: 'hsl(var(--accent-foreground))' }, destructive: { DEFAULT: 'hsl(var(--destructive))', foreground: 'hsl(var(--destructive-foreground))' }, card: { DEFAULT: 'hsl(var(--card))', foreground: 'hsl(var(--card-foreground))' }`. Also ensure globals.css defines the corresponding CSS variables (--border, --background, etc.) in :root and .dark selectors.",
+      "framework": "Tailwind CSS 3+ with shadcn/ui",
+      "kb_reference": "common_pitfalls#tailwind-css-variable-theming"
+    },
+    "postcss_syntax": {
+      "signatures": [
+        "CssSyntaxError:",
+        "Unknown word",
+        "PostCSS plugin tailwindcss requires PostCSS 8",
+        "PostCSS plugin",
+        "postcss-import requires PostCSS 8"
+      ],
+      "root_cause": "PostCSS cannot parse the CSS file. Common causes: (1) Using @tailwind directives with incompatible PostCSS version, (2) Missing postcss.config.js/mjs, (3) CSS syntax errors in globals.css, (4) PostCSS/Tailwind version mismatch.",
+      "fix": "1. Ensure postcss.config.mjs exists with tailwindcss and autoprefixer plugins. 2. Verify PostCSS 8+ is installed: 'npm install postcss@latest autoprefixer@latest'. 3. For Tailwind v3, use `@tailwind base; @tailwind components; @tailwind utilities;` in globals.css. For Tailwind v4, use `@import 'tailwindcss';`. 4. If .js and .mjs configs coexist, delete the .js version to avoid conflicts.",
+      "framework": "PostCSS / Tailwind CSS",
+      "kb_reference": "common_pitfalls#postcss-configuration"
+    }
+  },
+  "css": {
+    "postcss_syntax": {
+      "signatures": [
+        "CssSyntaxError:",
+        "Unknown word",
+        "PostCSS plugin"
+      ],
+      "root_cause": "PostCSS cannot parse the CSS file, typically due to version mismatches or missing configuration.",
+      "fix": "Ensure postcss.config.mjs exists with correct plugins. Verify PostCSS 8+ is installed. Delete conflicting .js config files if .mjs versions exist.",
+      "framework": "PostCSS"
+    }
+  },
+  "eslint": {
+    "unused_vars": {
+      "signatures": [
+        "is assigned a value but never used",
+        "is defined but never used",
+        "no-unused-vars",
+        "@typescript-eslint/no-unused-vars"
+      ],
+      "root_cause": "ESLint detected variables, imports, or parameters that are declared but never referenced in the code. Common after refactoring or copy-pasting.",
+      "fix": "Remove the unused variable/import, or prefix with underscore (_) to mark intentional (e.g., _unusedParam). Run `npx eslint --fix` to auto-fix simple cases. For TypeScript projects, configure @typescript-eslint/no-unused-vars to allow underscore-prefixed variables.",
+      "framework": "ESLint / TypeScript-ESLint",
+      "prevention": "Before submitting code, run `npx eslint .` to catch unused variables early. Use your IDE's lint integration for real-time feedback."
+    }
+  },
+  "jest": {
+    "missing_testing_library_dom": {
+      "signatures": [
+        "Cannot find module '@testing-library/dom'",
+        "Module not found: @testing-library/dom",
+        "Cannot resolve '@testing-library/dom'"
+      ],
+      "root_cause": "@testing-library/react requires @testing-library/dom as a peer dependency. The scaffold may not have installed it, or it was removed during a dependency clean.",
+      "fix": "Run: npm install -D @testing-library/dom @testing-library/react @testing-library/jest-dom. All three packages must be installed together — @testing-library/react depends on @testing-library/dom, and jest-dom provides the custom matchers (toBeInTheDocument, etc.).",
+      "framework": "Jest + React Testing Library",
+      "prevention": "When scaffolding a React/Next.js project, always install the full testing-library suite: @testing-library/react, @testing-library/dom, @testing-library/jest-dom, and jest-environment-jsdom."
+    },
+    "wrong_test_environment": {
+      "signatures": [
+        "document is not defined",
+        "window is not defined",
+        "ReferenceError: document is not defined",
+        "ReferenceError: window is not defined",
+        "HTMLElement is not defined",
+        "navigator is not defined"
+      ],
+      "root_cause": "Jest testEnvironment is set to 'node' but React component tests require a browser-like DOM environment. The 'node' environment does not provide document, window, or other browser globals.",
+      "fix": "In jest.config.js (or jest.config.ts), change testEnvironment from 'node' to 'jest-environment-jsdom'. Also ensure jest-environment-jsdom is installed: npm install -D jest-environment-jsdom. For per-file overrides, add /** @jest-environment jsdom */ at the top of test files that render components.",
+      "framework": "Jest + React",
+      "prevention": "For ALL React/Next.js projects, set testEnvironment to 'jest-environment-jsdom' in jest.config.js. Only use testEnvironment: 'node' for pure server-side/API tests."
+    },
+    "jsx_transform_error": {
+      "signatures": [
+        "Cannot use JSX unless '--jsx' flag is provided",
+        "SyntaxError: Cannot use JSX",
+        "Unexpected token '<'",
+        "Support for the experimental syntax 'jsx' isn't currently enabled",
+        "SyntaxError: Unexpected token '<'"
+      ],
+      "root_cause": "The test runner (ts-jest or babel) cannot transform JSX/TSX files. ts-jest needs explicit jsx configuration in its tsconfig or transform options. This is NOT a reason to switch to next/jest — next/jest requires SWC binaries that break in Docker containers.",
+      "fix": "In jest.config.js, add jsx: 'react-jsx' to the ts-jest transform options: transform: { '^.+\\\\.tsx?$': ['ts-jest', { tsconfig: 'tsconfig.json', diagnostics: false, jsx: 'react-jsx' }] }. Also ensure tsconfig.json has 'jsx': 'react-jsx' in compilerOptions. Do NOT switch to next/jest — it requires SWC platform binaries.",
+      "framework": "Jest + ts-jest + React",
+      "prevention": "When configuring ts-jest for React projects, ALWAYS include jsx: 'react-jsx' in the ts-jest transform options. Verify tsconfig.json also sets jsx: 'react-jsx'."
+    },
+    "missing_jest_dom_matchers": {
+      "signatures": [
+        "toBeInTheDocument is not a function",
+        "toHaveTextContent is not a function",
+        "toBeVisible is not a function",
+        "toHaveClass is not a function",
+        "Property 'toBeInTheDocument' does not exist",
+        "toBeInTheDocument is not a function"
+      ],
+      "root_cause": "@testing-library/jest-dom extends Jest's expect() with DOM-specific matchers (toBeInTheDocument, toHaveTextContent, etc.). These matchers are only available if @testing-library/jest-dom is imported in the test setup file.",
+      "fix": "1. Install: npm install -D @testing-library/jest-dom. 2. Add to jest.setup.js: import '@testing-library/jest-dom'; (or require('@testing-library/jest-dom')). 3. Ensure jest.config.js references the setup file: setupFilesAfterSetup: ['<rootDir>/jest.setup.js']. If using setupFiles instead of setupFilesAfterSetup, the matchers may not extend expect() correctly.",
+      "framework": "Jest + @testing-library/jest-dom",
+      "prevention": "ALWAYS import '@testing-library/jest-dom' in jest.setup.js when using React Testing Library. The setup file must be referenced in jest.config.js via setupFilesAfterSetup (NOT setupFiles)."
+    }
+  }
+}

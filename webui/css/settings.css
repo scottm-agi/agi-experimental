@@ -1,0 +1,1543 @@
+/* Settings Modal Styles - shadcn New York Theme */
+
+/* Navigation Links */
+#settings-sections {
+  padding-bottom: 1rem;
+}
+
+nav ul {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+  gap: 0.75rem;
+}
+
+nav ul li {
+  display: flex;
+  font-weight: 500;
+}
+
+nav ul li a {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  text-decoration: none;
+  color: var(--color-text);
+  background-color: var(--color-card);
+  border: 1px solid var(--color-border);
+  border-radius: var(--border-radius, 0.5rem);
+  padding: 1rem;
+  width: 100%;
+  transition: all 0.15s ease;
+}
+
+nav ul li a:hover {
+  background-color: var(--color-secondary);
+  border-color: var(--color-border);
+  box-shadow: var(--shadow-sm);
+}
+
+nav ul li a img {
+  width: 40px;
+  height: 40px;
+  margin-bottom: 0.5rem;
+  filter: var(--svg-filter);
+  opacity: 0.8;
+}
+
+.light-mode nav ul li a {
+  background-color: var(--color-card);
+}
+
+.light-mode nav ul li a:hover {
+  background-color: var(--color-secondary);
+}
+
+
+@media (max-width: 640px) {
+  nav ul {
+    grid-template-columns: repeat(2, 1.2fr);
+  }
+}
+
+@media (max-width: 480px) {
+  nav ul {
+    grid-template-columns: 1fr;
+  }
+
+  nav ul li a {
+    flex-direction: row;
+    justify-content: flex-start;
+    gap: 1rem;
+    padding: 0.75rem 1rem;
+  }
+
+  nav ul li a img {
+    margin-bottom: 0;
+    width: 30px;
+    height: 30px;
+  }
+}
+
+/* Settings Tab Styles - shadcn New York */
+.settings-tabs-container {
+  width: 100%;
+  margin-bottom: 1rem;
+  padding: 0;
+  margin-top: 1rem;
+  position: relative;
+  overflow: visible;
+}
+
+.settings-tabs {
+  display: flex;
+  width: 100%;
+  position: relative;
+  gap: 0;
+  border-bottom: 1px solid var(--color-border);
+  justify-content: flex-start;
+  padding-left: 0;
+  padding-top: 0;
+  overflow-x: auto;
+  overflow-y: hidden;
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+  white-space: nowrap;
+  -webkit-overflow-scrolling: touch;
+}
+
+.settings-tabs::-webkit-scrollbar {
+  display: none;
+}
+
+.settings-tabs::before,
+.settings-tabs::after {
+  display: none;
+}
+
+.settings-tab {
+  padding: 0.625rem 1rem;
+  cursor: pointer;
+  position: relative;
+  color: var(--color-muted-foreground);
+  border: none;
+  border-bottom: 2px solid transparent;
+  border-radius: 0;
+  transition: all 0.15s ease;
+  background-color: transparent;
+  margin-bottom: -1px;
+  z-index: 1;
+  min-width: min-content;
+  width: auto;
+  max-width: none;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  flex-shrink: 0;
+  font-size: 0.875rem;
+  font-weight: 500;
+}
+
+.settings-tab:hover {
+  color: var(--color-text);
+}
+
+.settings-tab:not(.active) {
+  opacity: 1;
+  border-bottom: 2px solid transparent;
+  background-color: transparent;
+}
+
+.settings-tab.active {
+  color: var(--color-text);
+  border-bottom: 2px solid var(--color-primary);
+  font-weight: 600;
+  background-color: transparent;
+}
+
+/* Light mode overrides */
+.light-mode .settings-tab {
+  color: var(--color-muted-foreground);
+}
+
+.light-mode .settings-tab:hover {
+  color: var(--color-text);
+}
+
+.light-mode .settings-tab.active {
+  color: var(--color-text);
+  border-bottom-color: var(--color-primary);
+}
+
+.light-mode .settings-tab:not(.active) {
+  background-color: transparent;
+}
+
+.light-mode .settings-tabs::before,
+.light-mode .settings-tabs::after {
+  display: none;
+}
+
+/* Responsive Design for Settings Tabs */
+@media (max-width: 640px) {
+  .settings-tabs {
+    gap: 2px;
+    padding-left: 10px;
+  }
+
+  .settings-tab {
+    padding: 6px 12px;
+    font-size: 0.9rem;
+  }
+}
+
+@media (max-width: 480px) {
+  .settings-tabs {
+    padding-left: 5px;
+  }
+
+  .settings-tab {
+    flex: 0 0 auto;
+    text-align: center;
+    min-width: 60px;
+    max-width: 80px;
+  }
+}
+
+/* Responsive Utility Classes */
+.show-mobile-only {
+  display: none !important;
+}
+
+@media (max-width: 768px) {
+  .show-mobile-only {
+    display: block !important;
+  }
+}
+
+.hide-desktop {
+  display: none !important;
+}
+
+@media (max-width: 768px) {
+  .hide-desktop {
+    display: block !important;
+  }
+}
+
+/* Standardized Settings Table Styles */
+.settings-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.9rem;
+  background-color: var(--color-background);
+}
+
+.settings-table th,
+.settings-table td {
+  padding: 12px 16px;
+  text-align: left;
+  border-bottom: 1px solid var(--color-border);
+  vertical-align: middle;
+}
+
+.settings-table th {
+  background-color: var(--color-panel);
+  font-weight: 600;
+  color: var(--color-primary);
+  text-transform: uppercase;
+  font-size: 0.75rem;
+  letter-spacing: 0.05em;
+  position: sticky;
+  top: 0;
+  z-index: 1;
+}
+
+.settings-table tr:hover {
+  background-color: var(--color-secondary);
+}
+
+.settings-table tr.selected {
+  background-color: var(--color-accent-light);
+}
+
+/* Action Icons Standardization */
+.btn-icon,
+.settings-table .btn-icon {
+  width: 32px;
+  height: 32px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 6px;
+  transition: all 0.2s ease;
+  color: var(--color-text) !important;
+  border: 1px solid transparent;
+  background: transparent;
+  padding: 0;
+  cursor: pointer;
+}
+
+.settings-table .btn-icon span.material-symbols-outlined,
+.btn-icon span.material-symbols-outlined {
+  font-size: 1.1rem;
+  color: var(--color-text);
+  display: inline-flex !important;
+  align-items: center;
+  justify-content: center;
+  vertical-align: middle;
+}
+
+.settings-table .btn-icon:hover {
+  background-color: var(--color-background-hover);
+  border-color: var(--color-border);
+}
+
+.settings-table .btn-icon.text-danger span.material-symbols-outlined,
+.btn-icon.text-danger span.material-symbols-outlined {
+  color: #ef4444;
+  /* Shadcn-like destructive red */
+}
+
+.settings-table .btn-icon.text-danger:hover,
+.btn-icon.text-danger:hover {
+  background-color: rgba(239, 68, 68, 0.1);
+  border-color: rgba(239, 68, 68, 0.2);
+}
+
+
+
+/* Mobile Responsiveness for Tables */
+@media (max-width: 768px) {
+  .settings-table .hide-mobile {
+    display: none !important;
+  }
+
+  /* On mobile, only show Checkbox + Name + Actions so no min-width needed */
+  .settings-table {
+    min-width: 0 !important;
+  }
+
+  /* Compact action buttons on mobile */
+  .scheduler-task-actions {
+    gap: 4px !important;
+  }
+
+  .scheduler-task-actions .btn-icon,
+  .settings-table .btn-icon {
+    width: 28px;
+    height: 28px;
+  }
+
+  .scheduler-task-actions .btn-icon span.material-symbols-outlined,
+  .settings-table .btn-icon span.material-symbols-outlined {
+    font-size: 1rem;
+  }
+}
+
+/* Scheduler Task List - updated with guaranteed width handling */
+.scheduler-task-list {
+  width: 100%;
+  min-width: 100%;
+  margin: 0;
+  border-collapse: separate;
+  border-spacing: 0;
+  padding-bottom: 8px;
+  table-layout: auto;
+}
+
+.scheduler-task-list th,
+.scheduler-task-list td {
+  padding: 8px 12px;
+  text-align: left;
+  vertical-align: middle;
+  border-bottom: 1px solid var(--color-border);
+}
+
+/* Column 1: Checkbox - keep narrow */
+.scheduler-task-list th:nth-child(1),
+.scheduler-task-list td:nth-child(1) {
+  width: 30px;
+  min-width: 30px;
+  max-width: 30px;
+  padding: 8px 6px;
+}
+
+/* Column 2: Name */
+.scheduler-task-list th:nth-child(2),
+.scheduler-task-list td:nth-child(2) {
+  min-width: 140px;
+  max-width: 220px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* Column 3: State */
+.scheduler-task-list th:nth-child(3),
+.scheduler-task-list td:nth-child(3) {
+  min-width: 80px;
+}
+
+/* Column 4: Type */
+.scheduler-task-list th:nth-child(4),
+.scheduler-task-list td:nth-child(4) {
+  min-width: 80px;
+}
+
+/* Column 5: Project */
+.scheduler-task-list th:nth-child(5),
+.scheduler-task-list td:nth-child(5) {
+  min-width: 120px;
+}
+
+/* Column 6: Schedule */
+.scheduler-task-list th:nth-child(6),
+.scheduler-task-list td:nth-child(6) {
+  min-width: 100px;
+}
+
+/* Column 7: Last Run */
+.scheduler-task-list th:nth-child(7),
+.scheduler-task-list td:nth-child(7) {
+  min-width: 120px;
+  white-space: nowrap;
+}
+
+/* Column 8: Actions */
+.scheduler-task-list th:nth-child(8),
+.scheduler-task-list td:nth-child(8) {
+  min-width: 100px;
+}
+
+/* On mobile, scheduler only shows checkbox + name + actions (3 columns) */
+@media (max-width: 768px) {
+
+  .scheduler-task-list th:nth-child(2),
+  .scheduler-task-list td:nth-child(2) {
+    min-width: 0;
+    max-width: none;
+  }
+
+  /* Actions column - just needs enough for compact icons */
+  .scheduler-task-list th:last-child,
+  .scheduler-task-list td:last-child {
+    min-width: 0;
+    width: auto;
+  }
+}
+
+/* Task actions container */
+.scheduler-task-actions {
+  display: flex;
+  justify-content: flex-start;
+  gap: 10px;
+  flex-wrap: nowrap;
+}
+
+/* Scheduler form styles */
+.scheduler-form {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+  padding: 1rem 0;
+}
+
+.scheduler-form-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 1.5rem;
+}
+
+.scheduler-form-title {
+  font-size: 1.25rem;
+  font-weight: bold;
+  color: var(--color-primary);
+  margin: 0;
+}
+
+.scheduler-form-actions {
+  display: flex;
+  gap: 0.8rem;
+  justify-content: flex-end;
+  align-items: center;
+}
+
+.scheduler-form-grid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 1.5rem;
+  overflow-x: auto;
+}
+
+.scheduler-form-field {
+  display: grid;
+  grid-template-columns: 1fr 2fr;
+  gap: 1rem;
+  align-items: flex-start;
+}
+
+@media (max-width: 768px) {
+  .scheduler-form-header {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 1rem;
+  }
+
+  .scheduler-form-actions {
+    align-self: flex-end;
+  }
+
+  .scheduler-form-field {
+    grid-template-columns: 1fr;
+    gap: 0.5rem;
+  }
+}
+
+/* Section Styles - shadcn New York */
+
+/* Scheduler container - updated with guaranteed width handling */
+.scheduler-container {
+  width: 100%;
+  box-sizing: border-box;
+  display: block;
+  padding: 0.5rem 1.5rem;
+}
+
+/* Scheduler task actions and buttons */
+.scheduler-task-action {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  background-color: transparent;
+  border: 1px solid var(--color-border);
+  color: var(--color-text);
+  padding: 4px;
+  border-radius: 4px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  width: 28px;
+  height: 28px;
+  flex-shrink: 0;
+}
+
+.scheduler-task-action:hover {
+  background-color: var(--color-secondary);
+}
+
+/* Mobile adjustments for scheduler */
+@media (max-width: 768px) {
+  .scheduler-task-list {
+    min-width: unset;
+  }
+
+  .scheduler-task-list .scheduler-task-actions {
+    flex-wrap: wrap;
+    gap: 6px;
+    justify-content: flex-start;
+  }
+
+  .scheduler-detail-view {
+    min-width: unset;
+  }
+
+  /* Hide button text on mobile, show only the icon */
+  .projects-controls .btn-field .btn-text {
+    display: none;
+  }
+}
+
+
+/* Tablet/small-desktop styles for scheduler sections */
+@media (min-width: 769px) and (max-width: 1280px) {
+  .scheduler-container {
+    min-width: max-content;
+  }
+
+  .scheduler-task-list {
+    min-width: max-content;
+  }
+}
+
+/* Scheduler form field styling to match standard field styling */
+.scheduler-form-label {
+  font-weight: bold;
+  color: var(--color-primary);
+  margin-bottom: 0.25rem;
+  /* Add consistent spacing between label and help text */
+}
+
+.scheduler-form-help {
+  color: var(--color-text);
+  font-size: 0.875rem;
+  opacity: 0.8;
+  margin: 0.25rem 0 0.5rem 0;
+  /* Match the spacing of field-description */
+}
+
+/* Label and help text wrapper for tighter grouping */
+.label-help-wrapper {
+  margin-bottom: 0.5rem;
+}
+
+.label-help-wrapper .scheduler-form-label {
+  margin-bottom: 2px;
+}
+
+.label-help-wrapper .scheduler-form-help {
+  margin-top: 0;
+  margin-bottom: 0;
+}
+
+/* Scheduler detail header styling */
+.scheduler-detail-header {
+  display: flex;
+  justify-content: flex-start;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 10px;
+  width: 100%;
+}
+
+.scheduler-detail-header .scheduler-detail-title {
+  margin-right: auto;
+}
+
+/* Responsive adjustments for headers */
+@media (max-width: 768px) {
+  .scheduler-form-header {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 1rem;
+  }
+
+  .scheduler-form-actions {
+    align-self: flex-end;
+  }
+
+  .scheduler-detail-header {
+    flex-direction: row;
+    /* Keep in row even on mobile */
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+  }
+
+  .scheduler-detail-header .btn {
+    margin-left: auto;
+    /* Push to right edge */
+  }
+
+  .scheduler-form-field {
+    grid-template-columns: 1fr;
+    gap: 0.5rem;
+  }
+}
+
+/* Input group for token field with generate button */
+.input-group {
+  display: flex;
+  gap: 8px;
+  width: 100%;
+}
+
+.input-group input[type="text"] {
+  flex: 1;
+  min-width: 0;
+  /* Allows the input to shrink below its content size */
+}
+
+/* Specific styling for the Generate button in token field */
+.input-group .scheduler-task-action {
+  white-space: nowrap;
+  padding: 4px 10px;
+  width: auto;
+  height: auto;
+  background-color: var(--color-secondary);
+  font-size: 0.9rem;
+}
+
+.input-group .scheduler-task-action:hover {
+  background-color: var(--color-accent);
+  color: var(--color-bg);
+}
+
+/* Ensure parent container allows proper flow */
+.scheduler-form-field .input-group {
+  max-width: 100%;
+  overflow: hidden;
+}
+
+/* Adjustments for mobile */
+@media (max-width: 768px) {
+  .input-group .scheduler-task-action {
+    padding: 4px 8px;
+    font-size: 0.8rem;
+  }
+}
+
+@media (max-width: 480px) {
+  .input-group {
+    flex-direction: column;
+  }
+
+  .input-group .scheduler-task-action {
+    align-self: flex-start;
+  }
+}
+
+/* Task state selector styling */
+.scheduler-state-selector {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.scheduler-state-selector .scheduler-status-badge {
+  cursor: pointer;
+  transition: all 0.2s ease;
+  opacity: 0.7;
+  border: 1px solid transparent;
+}
+
+.scheduler-state-selector .scheduler-status-badge:hover {
+  opacity: 0.9;
+  transform: scale(1.05);
+}
+
+.scheduler-status-selected {
+  opacity: 1 !important;
+  transform: scale(1.05);
+  box-shadow: 0 0 0 2px var(--color-bg), 0 0 0 4px var(--color-border);
+  border: 2px solid var(--color-border) !important;
+  outline: none;
+}
+
+/* Make status badges in selector more prominent */
+.scheduler-state-selector .scheduler-status-idle,
+.scheduler-state-selector .scheduler-status-running,
+.scheduler-state-selector .scheduler-status-disabled,
+.scheduler-state-selector .scheduler-status-error {
+  font-weight: 600;
+  padding: 6px 12px;
+}
+
+.light-mode .scheduler-status-selected {
+  box-shadow: 0 0 0 2px var(--color-bg-light), 0 0 0 4px var(--color-accent);
+}
+
+/* State explanation styling */
+.scheduler-state-explanation {
+  margin-top: 10px;
+  font-size: 0.85rem;
+  color: var(--color-text-secondary);
+  line-height: 1.4;
+  min-height: 1.4em;
+  /* Ensure consistent height even when changing descriptions */
+  transition: all 0.2s ease;
+}
+
+.scheduler-state-explanation span {
+  display: block;
+  padding: 4px 8px;
+  background-color: rgba(0, 0, 0, 0.05);
+  border-radius: 4px;
+  margin-top: 8px;
+}
+
+.light-mode .scheduler-state-explanation span {
+  background-color: rgba(255, 255, 255, 0.3);
+}
+
+/* Schedule Builder (for scheduled tasks) */
+.scheduler-schedule-builder {
+  display: grid;
+  grid-template-columns: repeat(5, 1fr);
+  gap: 10px;
+  width: 100%;
+  margin-bottom: 10px;
+}
+
+.scheduler-schedule-field {
+  display: flex;
+  flex-direction: column;
+}
+
+.scheduler-schedule-label {
+  font-size: 0.8rem;
+  margin-bottom: 5px;
+  color: var(--color-text);
+  opacity: 0.8;
+}
+
+/* Plan Builder (for planned tasks) */
+.scheduler-plan-builder {
+  width: 100%;
+  margin-bottom: 10px;
+  border: 1px solid var(--color-border);
+  border-radius: 8px;
+  padding: 10px;
+  background-color: rgba(0, 0, 0, 0.2);
+}
+
+.scheduler-plan-todo {
+  display: flex;
+  flex-direction: column;
+}
+
+.scheduler-plan-label {
+  font-size: 0.9rem;
+  margin-bottom: 10px;
+  color: var(--color-text);
+  font-weight: bold;
+}
+
+.scheduler-todo-list {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  margin-top: 8px;
+  max-height: 200px;
+  overflow-y: auto;
+}
+
+.scheduler-todo-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  background-color: var(--color-background);
+  border-radius: 6px;
+  padding: 8px 12px;
+  border: 1px solid var(--color-border);
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+}
+
+.scheduler-todo-item span {
+  flex: 1;
+  font-size: 14px;
+}
+
+.scheduler-add-todo {
+  margin-top: 12px;
+  display: flex;
+  gap: 8px;
+  align-items: center;
+}
+
+.scheduler-add-todo input[type="datetime-local"] {
+  flex: 1;
+  min-width: 0;
+  padding: 8px 12px;
+  border-radius: 6px;
+  border: 1px solid var(--color-border);
+  background-color: var(--color-background);
+  color: var(--color-text);
+}
+
+.scheduler-add-todo-button {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background-color: var(--color-accent);
+  color: white;
+  border: none;
+  border-radius: 6px;
+  padding: 8px 12px;
+  cursor: pointer;
+  transition: background-color 0.2s ease;
+  font-weight: 500;
+}
+
+.scheduler-add-todo-button:hover {
+  background-color: var(--color-accent-dark);
+}
+
+.scheduler-todo-remove {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background-color: transparent;
+  color: var(--color-text);
+  border: none;
+  border-radius: 4px;
+  width: 24px;
+  height: 24px;
+  cursor: pointer;
+  transition: background-color 0.2s ease;
+  margin-left: 8px;
+}
+
+.scheduler-todo-remove:hover {
+  background-color: var(--color-accent-light);
+  color: var(--color-accent-dark);
+}
+
+.light-mode .scheduler-todo-item {
+  background-color: var(--color-background-light);
+  border-color: var(--color-border-light);
+}
+
+.light-mode .scheduler-todo-remove:hover {
+  background-color: #e0e0e0;
+  color: #d32f2f;
+}
+
+.scheduler-empty-plan {
+  padding: 12px;
+  color: var(--color-text-muted);
+  font-style: italic;
+  text-align: center;
+  border: 1px dashed var(--color-border);
+  border-radius: 6px;
+  margin-top: 8px;
+}
+
+/* Responsive design for plan builder */
+@media (max-width: 768px) {
+  .scheduler-add-todo {
+    flex-direction: column;
+  }
+}
+
+/* Token field (for ad-hoc tasks) */
+
+/* ========================================
+   Projects Tab Styles
+   ======================================== */
+
+/* Batch Actions Container */
+.projects-batch-actions {
+  display: flex;
+  gap: 10px;
+  margin-bottom: 16px;
+  flex-wrap: wrap;
+  align-items: center;
+}
+
+.projects-batch-actions .btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 14px;
+  font-size: 0.9rem;
+}
+
+.projects-batch-actions .btn svg {
+  width: 16px;
+  height: 16px;
+}
+
+
+/* Empty State */
+.projects-empty-state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 48px 24px;
+  text-align: center;
+}
+
+.projects-empty-icon {
+  width: 64px;
+  height: 64px;
+  margin-bottom: 16px;
+  opacity: 0.5;
+  filter: var(--svg-filter);
+}
+
+.projects-empty-text {
+  color: var(--color-text);
+  opacity: 0.7;
+  font-size: 1rem;
+  margin-bottom: 16px;
+}
+
+/* Light Mode Overrides */
+
+.light-mode .projects-checkbox-custom {
+  background-color: var(--color-background-light);
+}
+
+/* Responsive Design */
+
+@media (max-width: 480px) {
+  .projects-table {
+    min-width: 400px;
+  }
+
+  .projects-checkbox-col {
+    width: 40px;
+  }
+
+  .projects-color-col {
+    width: 50px;
+  }
+
+  .project-color-ball-lg {
+    width: 20px;
+    height: 20px;
+  }
+}
+
+/* ========================================
+   Scheduler Project Search Dropdown Styles
+   ======================================== */
+
+.scheduler-project-search-container {
+  position: relative;
+  width: 100%;
+}
+
+.scheduler-project-search-input {
+  display: flex;
+  align-items: center;
+  gap: 0.5em;
+  padding: 0.5rem 0.75rem;
+  background-color: var(--color-background);
+  border: 1px solid var(--color-border);
+  border-radius: var(--border-radius-sm, 0.375rem);
+  cursor: pointer;
+  transition: all 0.15s ease;
+  min-height: 38px;
+}
+
+.scheduler-project-search-input:hover {
+  border-color: var(--color-muted-foreground);
+  background-color: var(--color-background-hover, var(--color-secondary));
+}
+
+.project-color-indicator {
+  width: 0.7em;
+  height: 0.7em;
+  border-radius: 50%;
+  flex-shrink: 0;
+  box-sizing: border-box;
+}
+
+.scheduler-project-search-text {
+  flex: 1;
+  font-size: 0.875rem;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  color: var(--color-text);
+}
+
+.scheduler-project-chevron {
+  font-size: 1.2em;
+  transition: transform 0.15s ease;
+  color: var(--color-muted-foreground);
+}
+
+.scheduler-project-chevron.rotated {
+  transform: rotate(180deg);
+}
+
+.scheduler-project-dropdown {
+  position: absolute;
+  top: calc(100% + 4px);
+  left: 0;
+  right: 0;
+  z-index: 1000;
+  background-color: var(--color-panel);
+  border: 1px solid var(--color-border);
+  border-radius: var(--border-radius-sm, 0.375rem);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+  max-height: 300px;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+}
+
+.scheduler-project-filter-wrapper {
+  display: flex;
+  align-items: center;
+  gap: 0.5em;
+  padding: 0.5em 0.75em;
+  background-color: var(--color-background);
+  margin: 0.5em;
+  border-radius: 4px;
+}
+
+.scheduler-project-search-icon {
+  font-size: 1em;
+  color: var(--color-muted-foreground);
+}
+
+.scheduler-project-filter-input {
+  flex: 1;
+  background: transparent;
+  border: none;
+  outline: none;
+  color: var(--color-text);
+  font-size: 0.875rem;
+  padding: 0;
+  min-width: 0;
+}
+
+.scheduler-project-filter-input::placeholder {
+  color: var(--color-muted-foreground);
+}
+
+.scheduler-project-divider {
+  height: 1px;
+  margin: 0.25em 0.5em;
+  background-color: var(--color-border);
+  border: 0;
+}
+
+.scheduler-project-list {
+  overflow-y: auto;
+  max-height: 200px;
+  scrollbar-width: thin;
+}
+
+.scheduler-project-item {
+  display: flex;
+  align-items: center;
+  gap: 0.5em;
+  padding: 0.5em 0.75em;
+  cursor: pointer;
+  transition: background-color 0.15s ease;
+}
+
+.scheduler-project-item:hover {
+  background-color: var(--color-background-hover, var(--color-secondary));
+}
+
+.scheduler-project-item.selected {
+  background-color: transparent;
+  box-shadow: inset 0 0 0 1px var(--color-accent);
+  border-radius: var(--border-radius-sm);
+}
+
+.scheduler-project-item-text {
+  flex: 1;
+  font-size: 0.875rem;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.scheduler-project-check {
+  font-size: 1em;
+  color: var(--color-primary);
+}
+
+.scheduler-project-create {
+  border-top: 1px solid var(--color-border);
+  margin-top: 0.25em;
+  padding-top: 0.5em;
+}
+
+.scheduler-project-create:hover {
+  background-color: rgba(var(--color-primary-rgb, 66, 153, 225), 0.1);
+}
+
+.scheduler-project-empty {
+  padding: 1em;
+  text-align: center;
+}
+
+.scheduler-project-empty-text {
+  font-size: 0.875rem;
+  color: var(--color-muted-foreground);
+  font-style: italic;
+}
+
+/* Light mode overrides for scheduler project dropdown */
+.light-mode .scheduler-project-dropdown {
+  background-color: var(--color-panel-light, var(--color-panel));
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+}
+
+.light-mode .scheduler-project-filter-wrapper {
+  background-color: var(--color-background-light, var(--color-background));
+}
+
+.light-mode .scheduler-project-item.selected {
+  background-color: transparent;
+  box-shadow: inset 0 0 0 1px var(--color-accent);
+}
+
+.light-mode .scheduler-project-create:hover {
+  background-color: rgba(var(--color-primary-rgb, 66, 153, 225), 0.08);
+}
+
+/* KVP Editor Styles */
+.kvp-editor {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  width: 100%;
+  margin-top: 0.5rem;
+}
+
+.kvp-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 0.5rem;
+  gap: 1rem;
+}
+
+.kvp-view-toggle {
+  display: flex;
+  background: var(--color-secondary);
+  border-radius: var(--border-radius-sm, 0.375rem);
+  padding: 2px;
+  border: 1px solid var(--color-border);
+}
+
+.kvp-view-btn {
+  padding: 0.25rem 0.75rem;
+  font-size: 0.75rem;
+  border-radius: var(--border-radius-sm, 0.375rem);
+  border: none;
+  background: transparent;
+  color: var(--color-muted-foreground);
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.kvp-view-btn.active {
+  background: var(--color-background);
+  color: var(--color-text);
+  box-shadow: var(--shadow-sm);
+}
+
+.kvp-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.kvp-row {
+  display: flex;
+  gap: 0.5rem;
+  align-items: center;
+}
+
+.kvp-key {
+  flex: 1;
+}
+
+.kvp-value-wrapper {
+  flex: 2;
+  display: flex;
+  align-items: center;
+  gap: 0.25rem;
+}
+
+.kvp-btn-remove {
+  background: transparent;
+  border: none;
+  color: var(--color-muted-foreground);
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 4px;
+  border-radius: 4px;
+}
+
+.kvp-btn-remove:hover {
+  color: var(--color-destructive);
+  background: color-mix(in srgb, var(--color-destructive) 10%, transparent);
+}
+
+.kvp-btn-add {
+  margin-top: 0.5rem;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  width: fit-content;
+  font-size: 0.8125rem;
+  padding: 0.375rem 0.75rem;
+}
+
+.kvp-btn-show-password {
+  background: transparent;
+  border: none;
+  color: var(--color-muted-foreground);
+  cursor: pointer;
+  font-size: 1.25rem;
+  padding: 0 4px;
+}
+
+.kvp-btn-show-password:hover {
+  color: var(--color-text);
+}
+
+.kvp-empty-message {
+  font-size: 0.8125rem;
+  color: var(--color-muted-foreground);
+  text-align: center;
+  padding: 1rem;
+  border: 1px dashed var(--color-border);
+  border-radius: var(--border-radius-sm, 0.375rem);
+}
+
+/* ========================================
+   Searchable Select Styles
+   ======================================== */
+
+.searchable-select-container,
+.searchable-select {
+  position: relative;
+  width: 100%;
+}
+
+.searchable-select-input {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  width: 100%;
+  padding: 0.5rem 0.75rem;
+  border: 1px solid var(--color-border);
+  border-radius: var(--border-radius-sm, 0.375rem);
+  background-color: var(--color-background);
+  cursor: pointer;
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.searchable-select-input:hover {
+  border-color: var(--color-muted-foreground);
+}
+
+.searchable-select-input.active {
+  border-color: var(--color-highlight);
+  box-shadow: 0 0 0 2px color-mix(in srgb, var(--color-highlight) 20%, transparent);
+}
+
+.searchable-select-input input {
+  flex: 1;
+  background: transparent;
+  border: none;
+  outline: none;
+  color: var(--color-text);
+  font-size: 0.875rem;
+  padding: 0;
+  cursor: pointer;
+}
+
+.searchable-select-input .icon,
+.searchable-select-chevron {
+  width: 1.25rem;
+  height: 1.25rem;
+  font-size: 1.25rem;
+  transition: transform 0.2s ease;
+  color: var(--color-muted-foreground);
+  flex-shrink: 0;
+}
+
+.searchable-select-input .icon.rotated,
+.searchable-select-input.active .searchable-select-chevron {
+  transform: rotate(180deg);
+}
+
+.searchable-select-dropdown {
+  position: absolute;
+  top: calc(100% + 4px);
+  left: 0;
+  right: 0;
+  z-index: 1000;
+  background-color: var(--color-panel);
+  border: 1px solid var(--color-border);
+  border-radius: var(--border-radius-sm, 0.375rem);
+  box-shadow: var(--shadow-lg);
+  max-height: 250px;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  animation: fadeIn 0.15s ease-out;
+}
+
+.searchable-select-options {
+  overflow-y: auto;
+  scrollbar-width: thin;
+  padding: 4px;
+}
+
+.searchable-select-option {
+  padding: 0.5rem 0.75rem;
+  cursor: pointer;
+  transition: background-color 0.1s ease;
+  font-size: 0.875rem;
+  color: var(--color-text);
+  border-radius: var(--border-radius-xs, 0.25rem);
+}
+
+.searchable-select-option:hover {
+  background-color: var(--color-accent);
+  color: #ffffff;
+}
+
+.searchable-select-option.selected {
+  background-color: transparent;
+  color: var(--color-text);
+  box-shadow: inset 0 0 0 1px var(--color-accent);
+  font-weight: 500;
+}
+
+/* Light mode overrides */
+.light-mode .searchable-select-dropdown {
+  background-color: var(--color-panel-light, var(--color-panel));
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+}
+
+/* Enhanced Searchable Select for Memory Dashboard */
+.selected-subdir-info {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  max-width: calc(100% - 30px);
+  position: absolute;
+  left: 12px;
+  pointer-events: none;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.selected-subdir-info>span:last-child {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  min-width: 0;
+}
+
+.searchable-select-input input.has-selection {
+  color: transparent !important;
+}
+
+.searchable-select-input input.has-selection:focus {
+  color: var(--color-text) !important;
+}
+
+.searchable-select-input input.has-selection:focus+.selected-subdir-info {
+  display: none;
+}
+
+.searchable-select-option {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.subdir-option-text {
+  display: flex;
+  flex-direction: column;
+  line-height: 1.2;
+}
+
+.subdir-title {
+  font-weight: 500;
+}
+
+.subdir-id {
+  font-size: 0.75rem;
+  color: var(--color-muted-foreground);
+  opacity: 0.8;
+}
+
+.searchable-select-option:hover .subdir-id {
+  color: #ffffff;
+  opacity: 1;
+}
+
+.project-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+
+/* Responsive Table Handling */
+@media (max-width: 768px) {
+
+  /* Only force min-width on tables that don't use hide-mobile */
+  .settings-view table:not(.settings-table):not(.scheduler-task-list),
+  .projects-table,
+  .prompts-table {
+    display: table;
+    min-width: 600px;
+  }
+
+  /* Tables with hide-mobile should collapse naturally */
+  .settings-table,
+  .scheduler-task-list {
+    display: table;
+    min-width: 0;
+    width: 100%;
+  }
+
+  .table-responsive,
+  .history-list-container,
+  .prompts-list-container {
+    display: block;
+    width: 100%;
+    overflow-x: auto !important;
+    -webkit-overflow-scrolling: touch;
+    border: 1px solid var(--color-border);
+    margin-bottom: 1rem;
+  }
+
+  .table-responsive {
+    display: block;
+    width: 100%;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+  }
+}
+
+/* Password Toggle UI */
+.password-toggle-container {
+  position: relative;
+  display: flex;
+  align-items: center;
+  width: 100%;
+}
+
+.password-toggle-container input {
+  padding-right: 40px !important;
+  width: 100% !important;
+}
+
+.password-toggle-btn {
+  position: absolute;
+  right: 8px;
+  height: 32px;
+  width: 32px;
+  min-width: 32px;
+  padding: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--color-text-dim);
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  transition: color 0.2s ease;
+  z-index: 2;
+}
+
+.password-toggle-btn:hover {
+  color: var(--color-text);
+  background: rgba(255, 255, 255, 0.1);
+}
+
+.password-toggle-btn .material-symbols-outlined {
+  font-size: 20px;
+}
+
+/* Desktop-only hiding */
+@media (min-width: 769px) {
+  .desktop-hidden {
+    display: none !important;
+  }
+}

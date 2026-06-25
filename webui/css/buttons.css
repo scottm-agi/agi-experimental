@@ -1,0 +1,322 @@
+/* Button Styles - shadcn New York Theme */
+
+/* Base Button */
+.button,
+.btn {
+  padding: 0.5rem 1rem;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  border-radius: var(--border-radius-sm, 0.375rem);
+  cursor: pointer;
+  border: 1px solid transparent;
+  background-color: var(--color-primary);
+  color: var(--color-background);
+  transition: all 0.15s ease;
+  min-height: 2.25rem;
+  box-sizing: border-box;
+  text-decoration: none;
+  outline: none;
+}
+
+.button:hover,
+.btn:hover {
+  opacity: 0.9;
+  box-shadow: var(--shadow-sm);
+}
+
+.button:active,
+.btn:active {
+  transform: scale(0.98);
+}
+
+.button:focus-visible,
+.btn:focus-visible {
+  outline: 2px solid var(--color-highlight);
+  outline-offset: 2px;
+}
+
+.button:disabled,
+.btn:disabled,
+.btn-disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+  pointer-events: none;
+}
+
+/* Primary Button (Default) */
+.btn-primary,
+.btn.primary,
+.button.confirm,
+.btn-ok {
+  background-color: var(--color-primary);
+  color: var(--color-background);
+  border-color: var(--color-primary);
+}
+
+.btn-primary:hover,
+.btn.primary:hover,
+.button.confirm:hover,
+.btn-ok:hover {
+  background-color: var(--color-primary);
+  opacity: 0.85;
+}
+
+/* Secondary Button */
+.btn-secondary {
+  background-color: var(--color-secondary);
+  color: var(--color-text);
+  border-color: var(--color-border);
+}
+
+.btn-secondary:hover {
+  background-color: var(--color-muted);
+}
+
+/* Outline Button */
+.btn-outline,
+.btn-field {
+  background-color: transparent;
+  color: var(--color-text);
+  border: 1px solid var(--color-border);
+  width: fit-content;
+}
+
+.btn-outline:hover,
+.btn-field:hover {
+  background-color: var(--color-secondary);
+  border-color: var(--color-border);
+}
+
+/* Ghost Button */
+.btn-ghost {
+  background-color: transparent;
+  color: var(--color-text);
+  border-color: transparent;
+}
+
+.btn-ghost:hover {
+  background-color: var(--color-secondary);
+}
+
+/* Destructive/Cancel Button */
+.btn-destructive,
+.btn.destructive,
+.button.cancel,
+.btn-cancel {
+  background-color: transparent;
+  color: var(--color-accent);
+  border: 1px solid var(--color-accent);
+}
+
+.btn-destructive:hover,
+.btn.destructive:hover,
+.button.cancel:hover,
+.btn-cancel:hover {
+  background-color: var(--color-accent);
+  color: white;
+}
+
+/* Slim Button */
+.btn.slim,
+.btn-slim {
+  padding: 0.25rem 0.5rem;
+  font-size: 0.8125rem;
+  min-height: auto;
+}
+
+/* Link Button */
+.btn-link {
+  background-color: transparent;
+  color: var(--color-highlight);
+  border-color: transparent;
+  text-decoration: underline;
+  text-underline-offset: 4px;
+}
+
+.btn-link:hover {
+  text-decoration: underline;
+  opacity: 0.8;
+}
+
+/* Button Sizes */
+.btn-sm {
+  padding: 0.25rem 0.75rem;
+  font-size: 0.75rem;
+  min-height: 1.75rem;
+  border-radius: var(--border-radius-sm, 0.375rem);
+}
+
+.btn-lg {
+  padding: 0.75rem 1.5rem;
+  font-size: 1rem;
+  min-height: 2.75rem;
+  border-radius: var(--border-radius, 0.5rem);
+}
+
+/* Icon Button */
+.btn-icon,
+.icon-button {
+  padding: 0.5rem;
+  min-width: 2.25rem;
+  min-height: 2.25rem;
+  width: 2.25rem;
+  height: 2.25rem;
+}
+
+.btn-icon.btn-sm {
+  padding: 0.25rem;
+  min-width: 1.75rem;
+  min-height: 1.75rem;
+  width: 1.75rem;
+  height: 1.75rem;
+}
+
+.btn-icon.btn-lg {
+  padding: 0.75rem;
+  min-width: 2.75rem;
+  min-height: 2.75rem;
+  width: 2.75rem;
+  height: 2.75rem;
+}
+
+/* Button with Icon */
+.btn .icon,
+.button .icon,
+.btn .material-symbols-outlined,
+.button .material-symbols-outlined {
+  width: 1rem;
+  height: 1rem;
+  font-size: 1rem;
+  flex-shrink: 0;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  line-height: 1;
+}
+
+.btn-sm .icon {
+  width: 0.875rem;
+  height: 0.875rem;
+}
+
+.btn-lg .icon {
+  width: 1.25rem;
+  height: 1.25rem;
+}
+
+/* Button Groups */
+.buttons-container,
+.btn-group {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.buttons-left {
+  display: flex;
+  justify-content: flex-start;
+  gap: 0.5rem;
+}
+
+.buttons-right {
+  display: flex;
+  justify-content: flex-end;
+  gap: 0.5rem;
+}
+
+/* Loading State */
+.btn-loading {
+  position: relative;
+  color: transparent !important;
+  pointer-events: none;
+}
+
+.btn-loading::after {
+  content: "";
+  position: absolute;
+  width: 1rem;
+  height: 1rem;
+  border: 2px solid currentColor;
+  border-right-color: transparent;
+  border-radius: 50%;
+  animation: spin 0.6s linear infinite;
+}
+
+/* Light Mode Adjustments */
+.light-mode .btn-primary,
+.light-mode .button.confirm,
+.light-mode .btn-ok {
+  background-color: var(--color-primary);
+  color: var(--color-background);
+}
+
+.light-mode .btn-secondary {
+  background-color: var(--color-secondary);
+  color: var(--color-text);
+}
+
+.light-mode .btn-outline,
+.light-mode .btn-field {
+  background-color: var(--color-background);
+  border-color: var(--color-border);
+}
+
+.light-mode .btn-outline:hover,
+.light-mode .btn-field:hover {
+  background-color: var(--color-secondary);
+}
+
+.light-mode .btn-ghost:hover {
+  background-color: var(--color-secondary);
+}
+
+/* Text Button (minimal styling) */
+.text-button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  background: transparent;
+  border: none;
+  color: var(--color-muted-foreground);
+  cursor: pointer;
+  padding: 0.375rem;
+  border-radius: var(--border-radius-sm, 0.375rem);
+  transition: all 0.15s ease;
+}
+
+.text-button:hover {
+  color: var(--color-text);
+  background-color: var(--color-secondary);
+}
+
+.text-button:active {
+  transform: scale(0.95);
+}
+
+.text-button svg {
+  width: 1.25rem;
+  height: 1.25rem;
+}
+
+/* Responsive */
+@media (max-width: 480px) {
+
+  .btn,
+  .button {
+    padding: 0.5rem 0.875rem;
+    font-size: 0.8125rem;
+  }
+
+  .btn-sm {
+    padding: 0.25rem 0.625rem;
+    font-size: 0.75rem;
+  }
+
+  .text-button svg {
+    width: 1rem;
+    height: 1rem;
+  }
+}

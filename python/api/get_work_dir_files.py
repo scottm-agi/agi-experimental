@@ -1,0 +1,34 @@
+from __future__ import annotations
+from python.helpers.api import ApiHandler, Request, Response
+from python.helpers.file_browser import FileBrowser
+from python.helpers import runtime, files
+import os
+
+class GetWorkDirFiles(ApiHandler):
+
+    @classmethod
+    def get_methods(cls):
+        return ["GET"]
+
+    async def process(self, input: dict, request: Request) -> dict | Response:
+        if os.getenv("AGIX_DISABLE_FILE_ACCESS", "false").lower() == "true":
+            return Response("File access is disabled in this environment", status=403)
+
+        current_path = request.args.get("path", "")
+        if current_path == "$WORK_DIR":
+            # if runtime.is_development():
+            #     current_path = "work_dir"
+            # else:
+            #     current_path = "root"
+            current_path = "/agix"
+
+        # browser = FileBrowser()
+        # result = browser.get_files(current_path)
+        result = await runtime.call_development_function(get_files, current_path)
+
+        return {"data": result}
+
+
+async def get_files(path):
+    browser = FileBrowser()
+    return browser.get_files(path)

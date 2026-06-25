@@ -1,0 +1,11 @@
+{
+  "system_dashboard": {
+    "enabled": true
+  },
+  "code_execution_tool": {
+    "enabled": true
+  },
+  "response": {
+    "enabled": true
+  }
+}

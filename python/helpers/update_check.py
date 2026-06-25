@@ -1,0 +1,16 @@
+from __future__ import annotations
+from python.helpers import git_helper, runtime
+from python.helpers.hashing import content_hash_short
+
+async def check_version():
+    import httpx
+
+    current_version = git_helper.get_version()
+    anonymized_id = content_hash_short(runtime.get_persistent_id(), length=20)
+    
+    url = "https://api.example.com/agix-update-check"
+    payload = {"current_version": current_version, "anonymized_id": anonymized_id}
+    async with httpx.AsyncClient() as client:
+        response = await client.post(url, json=payload)
+        version = response.json()
+    return version

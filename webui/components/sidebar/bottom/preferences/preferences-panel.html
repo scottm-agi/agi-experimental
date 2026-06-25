@@ -1,0 +1,173 @@
+<html>
+
+<head>
+  <script type="module">
+    import { store } from "./preferences-store.js";
+  </script>
+</head>
+
+<body>
+  <div x-data>
+    <template x-if="$store.preferences">
+      <div class="pref-section">
+        <ul class="config-list" id="preferences-list">
+          <li x-data x-show="$store.settings.is_development" title="Toggle automatic scrolling to new messages">
+            <span>Autoscroll</span>
+            <label class="switch">
+              <input id="auto-scroll-switch" type="checkbox" x-model="$store.preferences.autoScroll">
+              <span class="slider"></span>
+            </label>
+          </li>
+          <li x-data x-show="$store.settings.is_development" title="Toggle dark/light theme (light is default)">
+            <span class="switch-label">Dark mode</span>
+            <label class="switch">
+              <input type="checkbox" x-model="$store.preferences.darkMode">
+              <span class="slider"></span>
+            </label>
+          </li>
+          <li x-data>
+            <span class="switch-label">Speech</span>
+            <label class="switch">
+              <input type="checkbox" x-model="$store.preferences.speech">
+              <span class="slider"></span>
+            </label>
+          </li>
+          <li x-data>
+            <span>Show thoughts</span>
+            <label class="switch">
+              <input type="checkbox" x-model="$store.preferences.showThoughts">
+              <span class="slider"></span>
+            </label>
+          </li>
+          <li x-data>
+            <span>Show JSON</span>
+            <label class="switch">
+              <input type="checkbox" x-model="$store.preferences.showJson">
+              <span class="slider"></span>
+            </label>
+          </li>
+          <li x-data>
+            <span>Show utility messages</span>
+            <label class="switch">
+              <input type="checkbox" x-model="$store.preferences.showUtils">
+              <span class="slider"></span>
+            </label>
+          </li>
+          <li x-data>
+            <span>Background updates</span>
+            <label class="switch">
+              <input type="checkbox" x-model="$store.preferences.showBackgroundUpdates">
+              <span class="slider"></span>
+            </label>
+          </li>
+          <li x-data>
+            <span>Expand agent tiles</span>
+            <label class="switch">
+              <input type="checkbox" x-model="$store.preferences.expandTiles">
+              <span class="slider"></span>
+            </label>
+          </li>
+          <li x-data title="Show [TRACE] messages and sequencing info">
+            <span>Show debug info</span>
+            <label class="switch">
+              <input type="checkbox" x-model="$store.preferences.showDebugInfo">
+              <span class="slider"></span>
+            </label>
+          </li>
+          <li x-data title="Keep the screen on while the agent is working (releases 1 min after reply)"
+            x-show="$store.wakeLock && $store.wakeLock.isSupported">
+            <span>Keep screen on
+              <template x-if="$store.wakeLock && $store.wakeLock.active">
+                <span style="color: var(--color-success); font-size: 0.65rem; margin-left: 4px;">●</span>
+              </template>
+            </span>
+            <label class="switch">
+              <input type="checkbox" :checked="$store.wakeLock && $store.wakeLock.enabled"
+                @change="$store.wakeLock && $store.wakeLock.toggle()">
+              <span class="slider"></span>
+            </label>
+          </li>
+          <li x-data title="Simplify chat by showing only key messages" x-show="$store.settings.is_development"
+            :class="($store.settings?.simple_chat_forced || $store.preferences.isMobile()) ? 'opacity-50 pointer-events-none' : ''">
+            <span>Simple Chat</span>
+            <label class="switch">
+              <input type="checkbox" x-model="$store.preferences.simpleChat"
+                :disabled="$store.settings?.simple_chat_forced || $store.preferences.isMobile()">
+              <span class="slider"></span>
+            </label>
+          </li>
+          <li x-data title="Automatically refine and enhance your prompts for better results"
+            x-show="$store.settings.is_development">
+            <span>Enhanced Prompt</span>
+            <label class="switch">
+              <input type="checkbox" x-model="$store.preferences.promptEnhancement">
+              <span class="slider"></span>
+            </label>
+          </li>
+          <li x-data title="Adapt response style and tone to your personal communication preferences">
+            <span>Personalized Reply</span>
+            <label class="switch">
+              <input type="checkbox" x-model="$store.preferences.personalizedReply">
+              <span class="slider"></span>
+            </label>
+          </li>
+        </ul>
+      </div>
+  </div>
+  </template>
+  </div>
+
+  <style>
+    .pref-section {
+      font-size: var(--font-size-small);
+      padding: 0.6rem var(--spacing-md) 0.05rem var(--spacing-md);
+    }
+
+    /* Collapse transition */
+    .pref-section [x-cloak] {
+      display: none;
+    }
+
+    .pref-section .pref-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 6px;
+      cursor: pointer;
+      user-select: none;
+    }
+
+    .pref-section .config-list {
+      list-style: none;
+      padding: 0.05rem 0;
+      margin: 0;
+      display: flex;
+      flex-direction: column;
+      gap: 1px;
+    }
+
+    #preferences-collapse li {
+      opacity: 0.8;
+    }
+
+    .pref-section .switch-label,
+    .pref-section span {
+      font-size: 0.8rem;
+    }
+
+    .pref-section .switch {
+      position: relative;
+      display: inline-block;
+      width: 35px;
+      height: 19px;
+      margin-left: auto;
+    }
+
+    .pref-section li {
+      display: flex;
+      align-items: center;
+    }
+  </style>
+</body>
+
+</html>

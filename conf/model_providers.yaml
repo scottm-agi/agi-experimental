@@ -1,0 +1,242 @@
+# Supported model providers for AGIX
+# ---------------------------------------
+#
+# Each provider type ("chat", "embedding") contains a mapping of provider IDs
+# to their configurations.
+#
+# The provider ID (e.g., "anthropic") is used:
+#  - in the settings UI dropdowns.
+#  - to construct the environment variable for the API key (e.g., ANTHROPIC_API_KEY).
+#
+# Each provider configuration requires:
+#   name:             Human-readable name for the UI.
+#   litellm_provider: The corresponding provider name in LiteLLM.
+#
+# Optional fields:
+#   kwargs:           A dictionary of extra parameters to pass to LiteLLM.
+#                     This is useful for `api_base`, `extra_headers`, etc.
+
+chat:
+  agix_venice:
+    name: Venice.ai (Conduit)
+    litellm_provider: openai
+    kwargs:
+      # Use this provider as a partner-id conduit to the official
+      # Venice API. This is distinct from the direct 'venice' provider.
+      api_base: https://api.venice.ai/api/v1
+  anthropic:
+    name: Anthropic
+    litellm_provider: anthropic
+  cometapi:
+    name: CometAPI
+    litellm_provider: cometapi
+  deepseek:
+    name: DeepSeek
+    litellm_provider: deepseek
+  github_copilot:
+    name: GitHub Copilot
+    litellm_provider: github_copilot
+    kwargs:
+      extra_headers:
+        "Editor-Version": "vscode/1.85.1"
+        "Copilot-Integration-Id": "vscode-chat"
+  google:
+    name: Google
+    litellm_provider: gemini
+  groq:
+    name: Groq
+    litellm_provider: groq
+  lm_studio:
+    name: LM Studio
+    litellm_provider: lm_studio
+  mistral:
+    name: Mistral AI
+    litellm_provider: mistral
+  ollama:
+    name: Ollama
+    litellm_provider: ollama
+  openai:
+    name: OpenAI
+    litellm_provider: openai
+  azure:
+    name: OpenAI Azure
+    litellm_provider: azure
+  openrouter:
+    name: OpenRouter
+    litellm_provider: openrouter
+    kwargs:
+      extra_headers:
+        "HTTP-Referer": "https://example.com/"
+        "X-Title": "AGIX"
+    models:
+      - id: google/gemini-3-flash-preview
+        capabilities: [vision, function_calling, code, reasoning]
+      - id: google/gemini-3-pro
+        capabilities: [reasoning, vision, function_calling]
+      - id: anthropic/claude-3.5-sonnet
+        capabilities: [reasoning, vision, code, function_calling]
+      - id: openai/gpt-4o
+        capabilities: [reasoning, vision, function_calling]
+      - id: meta-llama/llama-3.1-405b-instruct
+        capabilities: [reasoning, vision, function_calling]
+      - id: xai/grok-4.1-fast
+        capabilities: [reasoning, function_calling]
+  sambanova:
+    name: Sambanova
+    litellm_provider: sambanova
+  venice:
+    name: Venice AI
+    litellm_provider: openai
+    kwargs:
+      api_base: https://api.venice.ai/api/v1
+    models:
+      # LLMs
+      - id: llama-3.1-405b
+        capabilities: [reasoning, vision, function_calling]
+      - id: llama-3.3-70b
+        capabilities: [reasoning, vision, function_calling]
+      - id: qwen-2.5-72b
+        capabilities: [reasoning, vision, function_calling]
+      - id: grok-beta
+        capabilities: [reasoning, vision, function_calling]
+      - id: qwen-2.5-coder-32b
+        capabilities: [code, function_calling]
+      - id: venice-uncensored
+        capabilities: [uncensored]
+      - id: cybertron-8b-v3
+        capabilities: []
+      - id: dolphin-2.9.4-llama-3-8b
+        capabilities: []
+      - id: nous-hermes-2-pro-llama-3-8b
+        capabilities: [function_calling]
+      - id: phi-3-mini-4k-instruct
+        capabilities: []
+      # Image Models
+      - id: fluency-pro-1.1
+        capabilities: [image_generation]
+      - id: fluency-flash-1.1
+        capabilities: [image_generation]
+      - id: fluency-pro-1.0
+        capabilities: [image_generation]
+      - id: fluency-flash-1.0
+        capabilities: [image_generation]
+      - id: flux-pro
+        capabilities: [image_generation]
+      - id: flux-dev
+        capabilities: [image_generation]
+      - id: flux-schnell
+        capabilities: [image_generation]
+      - id: flux-pro-1.1
+        capabilities: [image_generation]
+      - id: flux-pro-1.1-ultra
+        capabilities: [image_generation]
+      - id: flux-pro-1.0
+        capabilities: [image_generation]
+      - id: pondder-v1
+        capabilities: [image_generation]
+      - id: stablediffusion-3.5-large
+        capabilities: [image_generation]
+      - id: stablediffusion-3.5-medium
+        capabilities: [image_generation]
+      - id: stable-diffusion-3.5-large
+        capabilities: [image_generation]
+      - id: stable-diffusion-xl-lightning
+        capabilities: [image_generation]
+      # Video Models
+      - id: ocean-v1
+        capabilities: [video_generation]
+      - id: wayfarer-1.0
+        capabilities: [video_generation]
+      - id: lumina-video-v1
+        capabilities: [video_generation]
+      - id: gen-3-alpha-turbo
+        capabilities: [video_generation]
+      # Embedding Models
+      - id: v-embed-v1
+        capabilities: [embedding]
+      - id: v-embed-v2
+        capabilities: [embedding]
+      - id: text-embedding-3-small
+        capabilities: [embedding]
+      - id: text-embedding-3-large
+        capabilities: [embedding]
+      - id: bge-large-en-v1.5
+        capabilities: [embedding]
+      # TTS Models
+      - id: v-voice-v1
+        capabilities: [tts]
+      - id: v-voice-v2
+        capabilities: [tts]
+      - id: eleven-labs-flash-v2
+        capabilities: [tts]
+      - id: eleven-labs-turbo-v2.5
+        capabilities: [tts]
+      - id: playht-v2.1-turbo
+        capabilities: [tts]
+      - id: f5-tts
+        capabilities: [tts]
+  xai:
+    name: xAI
+    litellm_provider: xai
+    models:
+      - id: grok-2-1212
+        capabilities: [reasoning, function_calling]
+      - id: grok-2-vision-1212
+        capabilities: [reasoning, vision, function_calling]
+      - id: grok-beta
+        capabilities: [reasoning, function_calling]
+      - id: grok-vision-beta
+        capabilities: [reasoning, vision, function_calling]
+  bedrock:
+    name: AWS Bedrock
+    litellm_provider: bedrock
+    # Note: Set AWS_PROFILE environment variable for authentication
+    # e.g., AWS_PROFILE=brie-account
+  other:
+    name: Other OpenAI compatible
+    litellm_provider: openai
+
+embedding:
+  huggingface:
+    name: HuggingFace
+    litellm_provider: huggingface
+  venice:
+    name: Venice.ai
+    litellm_provider: openai
+    kwargs:
+      api_base: https://api.venice.ai/api/v1
+  google:
+    name: Google
+    litellm_provider: gemini
+  lm_studio:
+    name: LM Studio
+    litellm_provider: lm_studio
+  mistral:
+    name: Mistral AI
+    litellm_provider: mistral
+  ollama:
+    name: Ollama
+    litellm_provider: ollama
+  openai:
+    name: OpenAI
+    litellm_provider: openai
+  azure:
+    name: OpenAI Azure
+    litellm_provider: azure
+  # TODO: OpenRouter not yet supported by LiteLLM, replace with native litellm_provider openrouter and remove api_base when ready
+  openrouter:
+    name: OpenRouter
+    litellm_provider: openai
+    kwargs:
+      api_base: https://openrouter.ai/api/v1
+      extra_headers:
+        "HTTP-Referer": "https://example.com/"
+        "X-Title": "AGIX"
+  bedrock:
+    name: AWS Bedrock
+    litellm_provider: bedrock
+    # Note: Set AWS_PROFILE environment variable for authentication
+    # e.g., AWS_PROFILE=brie-account
+  other:
+    name: Other OpenAI compatible
+    litellm_provider: openai

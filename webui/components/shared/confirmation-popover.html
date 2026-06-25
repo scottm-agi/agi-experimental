@@ -1,0 +1,140 @@
+<div x-data="window.confirmationPopover()" x-show="$store.confirmation.isOpen" x-cloak
+    class="confirmation-popover-wrapper" @click.away="$store.confirmation.handleClickAway()"
+    @keydown.escape.window="$store.confirmation.handleCancel()"
+    :style="{ left: $store.confirmation.x + 'px', top: $store.confirmation.y + 'px' }">
+
+    <div class="confirmation-popover-arrow"></div>
+
+    <div class="confirmation-popover-content">
+        <div class="confirmation-popover-header" x-show="$store.confirmation.title">
+            <h4 x-text="$store.confirmation.title"></h4>
+        </div>
+        <div class="confirmation-popover-body">
+            <p x-text="$store.confirmation.message"></p>
+        </div>
+        <div class="confirmation-popover-footer">
+            <button class="btn btn-cancel btn-sm" @click="$store.confirmation.handleCancel()"
+                x-text="$store.confirmation.cancelText || 'Cancel'"></button>
+            <button class="btn btn-danger btn-sm" @click="$store.confirmation.handleConfirm()"
+                x-text="$store.confirmation.okText || 'OK'"></button>
+        </div>
+    </div>
+
+    <style>
+        .confirmation-popover-wrapper {
+            position: fixed;
+            z-index: 9999;
+            transform: translate(-50%, -100%);
+            margin-top: -10px;
+            filter: drop-shadow(0 4px 12px rgba(0, 0, 0, 0.3));
+            animation: popIn 0.2s ease-out;
+            pointer-events: auto;
+        }
+
+        @keyframes popIn {
+            from {
+                opacity: 0;
+                transform: translate(-50%, -90%) scale(0.95);
+            }
+
+            to {
+                opacity: 1;
+                transform: translate(-50%, -100%) scale(1);
+            }
+        }
+
+        .confirmation-popover-content {
+            background: var(--color-bg-sidebar, #1e1e2e);
+            border: 1px solid var(--color-border);
+            border-radius: 10px;
+            width: 220px;
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+            box-shadow: 0 8px 24px rgba(0, 0, 0, 0.4);
+        }
+
+        .confirmation-popover-arrow {
+            position: absolute;
+            bottom: -7px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 0;
+            height: 0;
+            border-left: 7px solid transparent;
+            border-right: 7px solid transparent;
+            border-top: 7px solid var(--color-border);
+        }
+
+        .confirmation-popover-arrow::after {
+            content: '';
+            position: absolute;
+            bottom: 1px;
+            left: -7px;
+            border-left: 7px solid transparent;
+            border-right: 7px solid transparent;
+            border-top: 7px solid var(--color-bg-sidebar, #1e1e2e);
+        }
+
+        .confirmation-popover-header {
+            padding: 8px 12px;
+            border-bottom: 1px solid var(--color-border);
+            background: rgba(255, 255, 255, 0.03);
+        }
+
+        .confirmation-popover-header h4 {
+            margin: 0;
+            font-size: 0.8em;
+            color: var(--color-text-dim);
+            text-transform: uppercase;
+            letter-spacing: 0.05rem;
+            font-weight: 600;
+        }
+
+        .confirmation-popover-body {
+            padding: 12px;
+        }
+
+        .confirmation-popover-body p {
+            margin: 0;
+            font-size: 0.9rem;
+            line-height: 1.4;
+            color: var(--color-text);
+        }
+
+        .confirmation-popover-footer {
+            padding: 8px 12px;
+            display: flex;
+            justify-content: flex-end;
+            gap: 6px;
+            background: rgba(255, 255, 255, 0.015);
+            border-top: 1px solid var(--color-border);
+        }
+
+        .btn-sm {
+            padding: 3px 10px;
+            font-size: 0.8rem;
+            border-radius: 6px;
+        }
+
+        .light-mode .confirmation-popover-content {
+            background: #fff;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+        }
+
+        .light-mode .confirmation-popover-arrow::after {
+            border-top-color: #fff;
+        }
+    </style>
+
+    <script>
+        window.confirmationPopover = function () {
+            return {
+                init() {
+                    // console.log('Confirmation popover initialized');
+                }
+            };
+        };
+    </script>
+</div>
+</div>

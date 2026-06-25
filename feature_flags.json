@@ -1,0 +1,20 @@
+{
+  "_comment": "Feature flag defaults. Env vars take precedence. Use scripts/push_feature_flags.sh to sync to Railway.",
+  "_note": "These flags control UI visibility only. Backend/agent functionality is NOT affected.",
+  "AGIX_ENV": "development",
+  "AGIX_DISABLE_DOWNLOADS": "false",
+  "AGIX_FORCE_SIMPLE_CHAT": "false",
+  "AGIX_SIMPLE_CHAT": "false",
+  "AGIX_HIDE_SUB_AGENT_TILES": "false",
+  "AGIX_DISABLE_FILE_ACCESS": "false",
+  "AGIX_ENABLE_HISTORY": "true",
+  "AGIX_ENABLE_SCHEDULER": "true",
+  "AGIX_ENABLE_OAUTH": "true",
+  "AGIX_ENABLE_BACKUP": "true",
+  "AGIX_ENABLE_PROJECTS": "true",
+  "AGIX_ENABLE_MCP": "true",
+  "AGIX_ENABLE_DEVELOPER": "true",
+  "AGIX_ENABLE_EXTERNAL": "true",
+  "AGIX_ENABLE_DASHBOARD": "true",
+  "AGIX_DASHBOARD_ON_LOAD": "true"
+}

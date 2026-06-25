@@ -1,0 +1,17 @@
+{
+    "name": "agix-mcp-servers",
+    "version": "1.0.0",
+    "description": "Deterministic dependencies for AGIX MCP servers",
+    "main": "index.js",
+    "dependencies": {
+        "@modelcontextprotocol/server-github": "2025.4.8",
+        "@modelcontextprotocol/server-sequential-thinking": "2025.12.18",
+        "@perplexity-ai/mcp-server": "0.6.2",
+        "@upstash/context7-mcp": "2.1.6",
+        "@piotr-agier/google-drive-mcp": "1.1.2",
+        "tavily-mcp": "0.2.18"
+    },
+    "scripts": {
+        "install-mcp": "npm install"
+    }
+}

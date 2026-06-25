@@ -1,0 +1,989 @@
+/* Chat History - shadcn New York Theme */
+#chat-history {
+  position: relative;
+  display: -webkit-flex;
+  display: flex;
+  flex-direction: column;
+  flex-grow: 1;
+  width: 100%;
+  overflow-y: scroll;
+  overflow-x: hidden;
+  scroll-behavior: auto !important;
+  /* avoid infinite scrolling! */
+  padding: var(--spacing-md) var(--spacing-sm) 0;
+  -webkit-transition: all 0.2s ease;
+  transition: all 0.2s ease;
+  scrollbar-width: thin;
+  scrollbar-color: var(--color-muted-foreground) transparent;
+}
+
+#chat-history>*:first-child {
+  margin-top: 4.4em;
+}
+
+/* Scrollbar styling */
+#chat-history::-webkit-scrollbar {
+  width: 6px;
+}
+
+#chat-history::-webkit-scrollbar-track {
+  background: transparent;
+  border-radius: 3px;
+}
+
+#chat-history::-webkit-scrollbar-thumb {
+  border-radius: 3px;
+  background-color: var(--color-border);
+  -webkit-transition: background-color var(--transition-speed) ease-in-out;
+  transition: background-color var(--transition-speed) ease-in-out;
+}
+
+#chat-history::-webkit-scrollbar-thumb:hover {
+  background-color: var(--color-muted-foreground);
+}
+
+#chat-history::-webkit-scrollbar-thumb:active {
+  background-color: var(--color-muted-foreground);
+}
+
+/* Message Styles */
+
+.user-container {
+  align-self: flex-end;
+  /* margin: var(--spacing-sm) var(--spacing-md); */
+  /* margin-bottom: var(--spacing-lg); */
+  /* margin-top: var(--spacing-sm); */
+  display: flex;
+  justify-content: flex-end;
+  width: 100%;
+}
+
+.ai-container {
+  align-self: flex-start;
+}
+
+.center-container {
+  align-self: center;
+  max-width: 80%;
+  margin: 0;
+}
+
+.center-container .message {
+  /* margin-bottom: var(--spacing-sm); */
+}
+
+.message .message-body {
+  /* padding-top: 0.5em;
+  padding-bottom: 0.5em; */
+}
+
+.message-user {
+  background-color: var(--color-accent-dark);
+  color: #ffffff;
+  /* border-bottom-right-radius: var(--spacing-xxs); */
+  /* min-width: 195px; */
+  text-align: end;
+}
+
+/* Ensure user message metadata is highly readable against the bronze background */
+.message-user .msg-timestamp,
+.message-user .msg-heading,
+.message-user .icon {
+  color: #ffffff !important;
+  opacity: 0.9 !important;
+}
+
+.message-user>div {
+  padding-top: var(--spacing-xs);
+  /* font-family: "Roboto Mono", monospace; */
+  font-optical-sizing: auto;
+  -webkit-font-optical-sizing: auto;
+  font-size: var(--font-size-smaller);
+}
+
+.message-user .message-text {
+  text-align: start;
+  font-family: var(--font-family-main);
+  padding-bottom: 2rem;
+  /* Add space for action buttons at bottom */
+}
+
+.message-user .message-text pre {
+  font-family: var(--font-family-main);
+}
+
+.message-ai {
+  /* border-bottom-left-radius: var(--spacing-xxs); */
+}
+
+.message-center {
+  align-self: center;
+  /* border-bottom-left-radius: unset; */
+}
+
+.message-followup {
+  /* margin-left: var(--spacing-lg); */
+  /* margin-bottom: var(--spacing-lg); */
+}
+
+.message-followup .message {
+  border-radius: 1.125em;
+  /* 18px */
+  /* border-top-left-radius: var(--spacing-xxs); */
+}
+
+.message-followup+.message-followup {
+  margin-bottom: 0;
+}
+
+.message-user .action-buttons {
+  bottom: 0.25rem;
+  right: 1.25rem;
+}
+
+.message-user .action-buttons .action-button {
+  background-color: transparent;
+}
+
+.message-user .action-buttons .action-button:hover {
+  /* background-color: rgba(255, 255, 255, 0.1); */
+}
+
+/* Update message types for dark mode - Brownian Shift matched to AGIX.space */
+.message-default,
+.message-agent,
+.message-agent-response,
+.message-agent-delegation,
+.message-tool,
+.message-code-exe,
+.message-browser,
+.message-info,
+.message-util,
+.message-warning,
+.message-error {
+  color: var(--color-text);
+  border-radius: var(--border-radius-md);
+  box-shadow: var(--shadow-premium);
+}
+
+.message-default {
+  background-color: var(--color-secondary);
+}
+
+.message-agent {
+  background-color: var(--color-message-bg-dark);
+  border: 1px solid var(--color-border);
+}
+
+.message-agent-response {
+  min-width: 255px;
+  background-color: var(--color-card-dark);
+  border: 1px solid var(--color-border);
+}
+
+.message-agent-delegation {
+  background-color: var(--color-card-dark);
+  border: 1px solid var(--color-border);
+}
+
+.message-tool {
+  background-color: var(--color-message-bg-dark);
+  border: 1px solid var(--color-border);
+}
+
+.message-code-exe {
+  background-color: var(--color-message-bg-dark);
+  border: 1px solid var(--color-border);
+}
+
+.message-body .message-markdown-table-wrap {
+  display: block;
+  width: 100%;
+  overflow-x: auto;
+  padding-bottom: 1em;
+}
+
+.message-body .message-markdown-table-wrap table {
+  width: auto;
+  table-layout: auto;
+  white-space: nowrap;
+}
+
+.message-body code {
+  white-space: break-spaces;
+}
+
+.light-mode .message-code-exe .message-body {
+  border: 1px solid var(--color-border);
+}
+
+.message-browser {
+  background-color: var(--color-message-bg-dark);
+  border: 1px solid var(--color-border);
+}
+
+.message-info {
+  background-color: var(--color-card-dark);
+  border: 1px solid var(--color-border);
+}
+
+.message-util {
+  background-color: var(--color-secondary);
+  display: none;
+}
+
+.message-warning {
+  background-color: var(--color-secondary-dark);
+  color: #fbbf24;
+  border: 1px solid var(--color-border);
+}
+
+.message-error {
+  background-color: var(--color-secondary-dark);
+  color: #f87171;
+  border: 1px solid var(--color-border);
+}
+
+/* Hide background updates by default if marked verbose */
+.verbose-log:not(.show-verbose) {
+  display: none !important;
+}
+
+/* Prevent orphaned bubbles: hide message if it has no heading or content */
+.message:not(:has(.msg-heading)):not(:has(.message-body:not(:empty))) {
+  display: none !important;
+}
+
+/* Issue #832: CSS Layer-3 safety net for empty message guard.
+   JS sets this class via isMessageEmpty() in messages.js.
+   This rule ensures empty messages are hidden even if JS guards are bypassed. */
+.hidden-empty-message {
+  display: none !important;
+}
+
+/* Simple Chat Mode: Hide intermediate agent/system messages */
+body.simple-chat-mode .message-container:not(.user-container):not(:has(.message-agent-response)):not(:has(.message-info)):not(:has(.a2ui-tile)) {
+  display: none !important;
+}
+
+/* Hide entire groups if they only contain hidden messages (intermediate steps) */
+body.simple-chat-mode .message-group:not(:has(.user-container)):not(:has(.message-agent-response)):not(:has(.message-info)):not(:has(.a2ui-tile)) {
+  display: none !important;
+}
+
+.message-code-exe .message-body {
+  min-height: 5em;
+  width: 100%;
+  background-color: var(--color-background);
+  border: 1px solid var(--color-border);
+  border-radius: var(--border-radius-sm, 0.375rem);
+  margin-top: 0.5em;
+  padding: 0.75em;
+  font-family: var(--font-family-code);
+  font-size: 0.8125rem;
+}
+
+/* Agent and AI Info */
+.agent-start {
+  color: var(--color-text);
+  font-size: var(--font-size-small);
+  margin-bottom: var(--spacing-xs);
+  opacity: 0.7;
+}
+
+.msg-kvps {
+  font-size: 0.9em;
+  margin: 0.5rem 0 0.55rem 0;
+  border-collapse: collapse;
+  width: 100%;
+}
+
+.kvps-val pre {
+  white-space: pre-wrap;
+  /* keep \n, collapse no spaces, allow wrapping */
+  word-break: break-word;
+  /* optional – forces really long “words” to break */
+  font-family: var(--font-family-code);
+  font-optical-sizing: auto;
+  -webkit-font-optical-sizing: auto;
+  font-size: 0.75rem;
+}
+
+.msg-kvps th,
+.msg-kvps td {
+  align-content: center;
+  padding: 0.25rem;
+  padding-left: 0;
+  text-align: left;
+}
+
+.msg-kvps th {
+  color: var(--color-primary);
+  width: 40%;
+}
+
+.msg-kvps tr {
+  border-bottom: 1px solid rgba(255, 255, 255, 0.15);
+}
+
+.msg-heading {
+  margin: 0;
+  position: relative;
+  display: block;
+  white-space: nowrap;
+}
+
+.msg-heading h4 {
+  margin: 0;
+  /* width: calc(100% - 4em); */
+  margin-right: 4em;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.collapsed-thought {
+  font-size: 0.75rem;
+  font-weight: normal;
+  color: var(--color-muted-foreground);
+  opacity: 0.8;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  max-width: 20rem;
+  display: inline-block;
+  font-style: italic;
+}
+
+.message-body[style*="display: none"]~.msg-heading .collapsed-thought {
+  display: inline-block;
+}
+
+.message-body:not([style*="display: none"])~.msg-heading .collapsed-thought {
+  display: none;
+}
+
+/* Message Actions */
+.message-actions {
+  color: var(--color-text);
+  font-size: var(--font-size-small);
+  margin-top: var(--spacing-xs);
+}
+
+.message-action {
+  cursor: pointer;
+  opacity: 0.7;
+  -webkit-transition: opacity var(--transition-speed) ease-in-out;
+  transition: opacity var(--transition-speed) ease-in-out;
+}
+
+.message-action:hover {
+  opacity: 1;
+}
+
+/* Legacy copy button styles - DEPRECATED
+ * These styles have been replaced by the new action buttons component
+ * located at /components/messages/action-buttons/message-action-buttons.css
+ * Remove this section after confirming all functionality works with action buttons
+ */
+
+/* Make message containers relative for absolute positioning of copy buttons */
+.msg-content,
+.kvps-row,
+.message-text {
+  position: relative;
+}
+
+.message-text pre {
+  margin: 0;
+  white-space: pre-wrap;
+  word-break: break-word;
+  overflow-wrap: anywhere;
+}
+
+/* Utility Classes */
+.kvps-key {
+  font-weight: 500;
+  font-size: var(--font-size-small);
+  min-width: 7em;
+}
+
+.kvps-val {
+  /* margin: 0.65rem 0 0.65rem 0.4rem; */
+  white-space: pre-wrap;
+}
+
+.kvps-img,
+.attachment-preview {
+  cursor: zoom-in;
+}
+
+.kvps-img {
+  width: 8em;
+  height: 8em;
+  object-fit: cover;
+  object-position: top;
+  border-radius: var(--border-radius-sm, 0.375rem);
+  border: 1px solid var(--color-border);
+  cursor: zoom-in;
+  transition: transform 0.2s ease;
+}
+
+.kvps-img:hover {
+  transform: scale(1.02);
+}
+
+/* Safe Image Display constraints */
+.message-body img:not(.agent-icon):not(.file-icon) {
+  max-width: 100%;
+  max-height: 20rem;
+  width: auto;
+  height: auto;
+  border-radius: var(--border-radius-md, 0.5rem);
+  border: 1px solid var(--color-border);
+  margin-top: 0.5rem;
+  margin-bottom: 0.5rem;
+  cursor: zoom-in;
+  transition: all 0.2s ease;
+  box-shadow: var(--shadow-sm);
+}
+
+.message-body img:not(.agent-icon):not(.file-icon):hover {
+  opacity: 0.9;
+  box-shadow: var(--shadow);
+}
+
+.image-viewer-img {
+  width: 100%;
+}
+
+.msg-json {
+  display: none;
+}
+
+.msg-thoughts {
+  display: auto;
+}
+
+.msg-thoughts .kvps-val {
+  max-height: 20em;
+  overflow: auto;
+}
+
+.msg-content {
+  margin-bottom: 0;
+  padding: 0;
+  overflow: hidden;
+}
+
+.msg-summary {
+  display: block !important;
+  font-style: italic;
+  font-size: 0.8em;
+  color: var(--color-muted-foreground);
+  opacity: 0.9;
+  padding: 0.5rem 0;
+  border-top: 1px dotted var(--color-border);
+}
+
+.message-temp {
+  display: none;
+}
+
+.message-temp:not([style*="display: none"]):last-of-type {
+  display: block;
+  /* or any style you want for visibility */
+}
+
+/* Math (KaTeX) */
+.katex {
+  line-height: 1.2 !important;
+  font-size: 1.1em;
+}
+
+/* Media Queries */
+@media (max-width: 640px) {
+  /* New styles for mobile messages */
+
+  .message-followup {
+    /* margin-left: var(--spacing-md); */
+    margin-bottom: var(--spacing-md);
+  }
+
+  .msg-kvps {
+    display: flex;
+    flex-direction: column;
+    border-collapse: separate;
+    border-spacing: 0 0.5rem;
+  }
+
+  .msg-kvps tr {
+    display: flex;
+    flex-direction: column;
+    margin-top: 0.3rem;
+    padding-bottom: 0;
+  }
+
+  .msg-kvps th,
+  .msg-kvps td {
+    display: block;
+    width: 100%;
+    text-align: left;
+    border-bottom: none;
+    padding: 0.25rem 0;
+    padding-left: 0 !important;
+  }
+
+  .msg-kvps th {
+    color: var(--color-primary);
+    margin-bottom: 0.25rem;
+  }
+
+  .kvps-val {
+    margin: 0 0 0.4rem 0;
+    white-space: pre-wrap;
+    word-break: break-word;
+    overflow-wrap: anywhere;
+  }
+}
+
+.light-mode .msg-kvps tr {
+  border-bottom: 1px solid rgb(192 192 192 / 50%);
+}
+
+.light-mode .message-default {
+  background-color: var(--color-secondary);
+  color: var(--color-text);
+}
+
+.light-mode .message-agent {
+  background-color: #ffffff;
+  color: var(--color-text);
+  border: 1px solid var(--color-border);
+}
+
+.light-mode .message-agent-response {
+  background-color: #f4f4f5;
+  color: var(--color-text);
+  border: 1px solid var(--color-border);
+}
+
+.light-mode .message-agent-delegation {
+  background-color: #f4f4f5;
+  color: var(--color-text);
+  border: 1px solid var(--color-border);
+}
+
+.light-mode .message-tool {
+  background-color: #ffffff;
+  color: var(--color-text);
+  border: 1px solid var(--color-border);
+}
+
+.light-mode .message-code-exe {
+  background-color: #fafafa;
+  color: var(--color-text);
+  border: 1px solid var(--color-border);
+}
+
+.light-mode .message-browser {
+  background-color: #fafafa;
+  color: var(--color-text);
+  border: 1px solid var(--color-border);
+}
+
+.light-mode .message-info {
+  background-color: var(--color-card);
+  color: var(--color-text);
+  border: 1px solid var(--color-border);
+}
+
+.light-mode .message-util {
+  background-color: var(--color-secondary);
+  color: var(--color-muted-foreground);
+}
+
+.light-mode .message-warning {
+  background-color: #fefce8;
+  color: #854d0e;
+  border: 1px solid #fde047;
+}
+
+.light-mode .message-error {
+  background-color: #fef2f2;
+  color: #991b1b;
+  border: 1px solid #fecaca;
+}
+
+.light-mode .message-user {
+  background-color: var(--color-primary);
+  color: var(--color-background);
+}
+
+/* Markdown in messages */
+.msg-content {
+  font-size: var(--font-size-small);
+}
+
+.message-agent-response .msg-content {
+  font-size: var(--font-size-smaller);
+}
+
+.message-agent-response .msg-content img {
+  max-width: 100%;
+  max-height: 100em;
+}
+
+.msg-content h1 {
+  font-size: 1.25em;
+  font-weight: 800;
+  margin-bottom: 0.2em;
+}
+
+.msg-content h2 {
+  font-size: 1.2em;
+  font-weight: 700;
+  margin-bottom: 0.2em;
+}
+
+.msg-content h3 {
+  font-size: 1.15em;
+  font-weight: 600;
+  margin-bottom: 0.2em;
+}
+
+.msg-content h4 {
+  font-size: 1.1em;
+  font-weight: 500;
+  margin-bottom: 0.2em;
+}
+
+.msg-content h5 {
+  font-size: 1.05em;
+  font-weight: 500;
+  margin-bottom: 0.2em;
+}
+
+.msg-content h6 {
+  font-size: 1em;
+  font-weight: 500;
+  margin-bottom: 0.2em;
+}
+
+.msg-content table {
+  width: 100%;
+  border-collapse: collapse;
+  margin: 1em 0;
+  font-size: 0.98em;
+  background: transparent;
+  border-radius: 8px;
+  overflow: hidden;
+}
+
+.msg-content th,
+.msg-content td {
+  padding: 0.55em 1em;
+  border: 1px solid rgba(142, 142, 142, 0.1);
+  text-align: left;
+  background: transparent;
+}
+
+.msg-content th {
+  font-weight: 600;
+  background: rgba(142, 142, 142, 0.1);
+}
+
+.msg-content tr:nth-child(even) {
+  background: rgba(142, 142, 142, 0.1);
+}
+
+.msg-content tr:nth-child(odd) {
+  background: transparent;
+}
+
+.msg-content table {
+  box-shadow: none;
+}
+
+.msg-content pre:has(code) {
+  padding: 0.5em;
+  border: 1px solid rgba(142, 142, 142, 0.1);
+  border-radius: 0.3em;
+}
+
+.msg-min-max-btns {
+  opacity: 40%;
+  position: absolute;
+  top: -0.2em;
+  right: -0.2em;
+  display: flex;
+  gap: 0.3em;
+  z-index: 1;
+}
+
+.message-group {
+  margin-top: 0.5em;
+  margin-bottom: 0.5em;
+  display: inline-grid;
+  grid-template-columns: minmax(0, max-content);
+  grid-auto-rows: auto;
+  max-width: 100%;
+  width: fit-content;
+  gap: var(--spacing-xs);
+}
+
+.message-group>* {
+  grid-column: 1;
+}
+
+/* both children sit in the same column */
+
+.message-group-right {
+  width: 100%;
+  justify-content: end;
+}
+
+.message-group-mid {
+  margin-left: 2em;
+}
+
+/* 1. FIRST child’s .message – clear ONLY bottom corners          */
+.message-group>*:first-child:not(:last-child)>.message {
+  border-bottom-left-radius: var(--spacing-xxs);
+  border-bottom-right-radius: var(--spacing-xxs);
+}
+
+/* 2. MIDDLE children’s .message – clear ALL corners              */
+.message-group>*:not(:first-child):not(:last-child)>.message {
+  border-radius: var(--spacing-xxs);
+}
+
+/* 3. LAST child’s .message – clear ONLY top corners              */
+.message-group>*:last-child:not(:first-child)>.message {
+  border-top-left-radius: var(--spacing-xxs);
+  border-top-right-radius: var(--spacing-xxs);
+}
+
+.message-container {
+  animation: fadeIn 0.5s;
+  -webkit-animation: fadeIn 0.5s;
+  /* margin-bottom: var(--spacing-sm); */
+  width: 100%;
+  max-width: 100%;
+  will-change: transform, opacity;
+  content-visibility: auto;
+  contain-intrinsic-size: 1px 100px;
+}
+
+.message {
+  position: relative;
+  border-radius: var(--border-radius-md);
+  padding: var(--spacing-md) var(--spacing-md) 2.25rem var(--spacing-md);
+  /* Added bottom padding for model info */
+  min-height: 4rem;
+  /* Ensure enough height for header + footer info */
+  overflow-x: auto;
+  width: auto;
+  max-width: 100%;
+  box-sizing: border-box;
+  word-break: break-word;
+  overflow-wrap: anywhere;
+  box-shadow: var(--shadow-premium);
+  will-change: transform;
+}
+
+/* shades - subtle for shadcn style */
+.dark-mode .message {
+  box-shadow: var(--shadow-premium);
+}
+
+.light-mode .message {
+  box-shadow: var(--shadow-premium);
+}
+
+.msg-model-info {
+  position: absolute;
+  bottom: 0.65rem;
+  right: 1.25rem;
+  font-size: 0.65rem;
+  color: var(--color-muted-foreground);
+  opacity: 0.7;
+  /* Increased from 0.5 for better visibility */
+  pointer-events: none;
+  font-family: var(--font-family-code);
+  font-weight: 400;
+  white-space: nowrap;
+  letter-spacing: -0.01em;
+  user-select: none;
+  z-index: 5;
+}
+
+.light-mode .msg-model-info {
+  opacity: 0.6;
+}
+
+.msg-timestamp {
+  font-size: 10px;
+  color: var(--color-muted-foreground);
+  opacity: 0.8;
+  /* Increased from 0.7 for consistency */
+  font-family: var(--font-family-code);
+  margin-bottom: 4px;
+  pointer-events: none;
+  user-select: none;
+}
+
+/* AI Message timestamps (div inserted after heading or at the top) */
+.message:not(.message-user)>.msg-timestamp {
+  display: block;
+  text-align: right;
+  padding-right: 12px;
+  margin-top: -4px;
+  margin-bottom: 4px;
+}
+
+/* If it's at the very top (no heading), adjust margin */
+.message:not(.message-user)>.msg-timestamp:first-child {
+  margin-top: 4px;
+}
+
+/* User Message timestamps (span inside h4) */
+.message-user .msg-heading .msg-timestamp {
+  float: right;
+  margin-left: 12px;
+  font-weight: normal;
+}
+
+.light-mode .msg-timestamp {
+  color: var(--color-muted-foreground-light);
+}
+
+```
+
+/* Agent Profile Icons */
+.agent-icon {
+  height: 1.25rem;
+  width: 1.25rem;
+  vertical-align: middle;
+  margin-right: 0.5rem;
+  filter: var(--svg-filter);
+  display: inline-block;
+  flex-shrink: 0;
+  transition: transform 0.2s ease-in-out;
+}
+
+.agent-icon:hover {
+  transform: scale(1.1);
+}
+
+.msg-heading h4 {
+  display: flex;
+  align-items: center;
+}
+
+/* Mermaid Container and Error Handling */
+.mermaid-container {
+  margin: 1rem 0;
+  width: 100%;
+  overflow-x: auto;
+}
+
+.mermaid-error-box {
+  background-color: var(--color-destructive-muted, rgba(244, 67, 54, 0.1));
+  border: 1px solid var(--color-destructive, #f44336);
+  border-radius: var(--border-radius-md, 0.5rem);
+  padding: 0.75rem;
+  margin: 0.5rem 0;
+}
+
+.mermaid-error-header {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  color: var(--color-destructive, #f44336);
+  font-weight: 600;
+  font-size: 0.9rem;
+}
+
+.mermaid-error-header .material-symbols-outlined {
+  font-size: 1.2rem;
+}
+
+.mermaid-raw-toggle {
+  margin-left: auto;
+  font-size: 0.75rem;
+  padding: 2px 8px;
+  height: auto;
+}
+
+.mermaid-raw-content {
+  margin-top: 0.75rem;
+  border-top: 1px solid rgba(244, 67, 54, 0.2);
+  padding-top: 0.75rem;
+}
+
+.mermaid-raw-content pre {
+  margin: 0;
+  font-size: 0.8rem;
+  background: rgba(0, 0, 0, 0.05);
+  padding: 0.5rem;
+  border-radius: 4px;
+  max-height: 200px;
+  overflow-y: auto;
+}
+
+.dark-mode .mermaid-raw-content pre {
+  background: rgba(255, 255, 255, 0.05);
+}
+
+/* Secret Masking */
+.masked-secret {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.25rem;
+  background: rgba(255, 165, 0, 0.1);
+  border: 1px solid rgba(255, 165, 0, 0.25);
+  border-radius: 4px;
+  padding: 0.1rem 0.35rem;
+  font-family: var(--font-family-code);
+  font-size: 0.85em;
+  vertical-align: baseline;
+  cursor: pointer;
+  transition: background 0.2s, transform 0.1s;
+  user-select: none;
+}
+
+.masked-secret:hover {
+  background: rgba(255, 165, 0, 0.2);
+  transform: translateY(-1px);
+}
+
+.masked-secret:active {
+  transform: translateY(0);
+}
+
+.masked-secret .masked-value {
+  color: var(--color-muted-foreground);
+  letter-spacing: -0.05em;
+  user-select: none;
+}
+
+.masked-secret .revealed-value {
+  color: #ffffff;
+  word-break: break-all;
+}
+
+.masked-secret .secret-toggle {
+  display: none;
+}
+
+.light-mode .masked-secret {
+  background: rgba(245, 158, 11, 0.08);
+  border-color: rgba(245, 158, 11, 0.2);
+}
+
+.light-mode .masked-secret .revealed-value {
+  color: #ffffff;
+}

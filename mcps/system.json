@@ -1,0 +1,105 @@
+{
+    "mcpServers": {
+        "sequential-thinking": {
+            "type": "stdio",
+            "disabled": false,
+            "description": "Sequential Thinking MCP server",
+            "command": "mcp-server-sequential-thinking",
+            "args": []
+        },
+        "github": {
+            "type": "stdio",
+            "disabled": false,
+            "description": "GitHub MCP server for managing issues, PRs, and repositories",
+            "command": "mcp-server-github",
+            "args": [],
+            "env": {
+                "GITHUB_PERSONAL_ACCESS_TOKEN": "§§secret(GITHUB_TOKEN)"
+            }
+        },
+        "forgejo": {
+            "type": "stdio",
+            "disabled": false,
+            "description": "Forgejo MCP server for repository and issue management",
+            "command": "/opt/venv-agix/bin/python3",
+            "args": [
+                "-m",
+                "python.helpers.mcp.forgejo_mcp_server"
+            ],
+            "env": {
+                "PYTHONPATH": "/agix",
+                "FORGEJO_TOKEN": "§§secret(FORGEJO_TOKEN)",
+                "FORGEJO_URL": "§§parameter(FORGEJO_URL)"
+            }
+        },
+        "perplexity-ask": {
+            "type": "stdio",
+            "disabled": false,
+            "description": "Perplexity Ask MCP server for web search and AI chat",
+            "command": "perplexity-mcp",
+            "args": [],
+            "env": {
+                "PERPLEXITY_API_KEY": "§§secret(PERPLEXITY_API_KEY)"
+            }
+        },
+        "context7": {
+            "type": "stdio",
+            "disabled": false,
+            "description": "Context7 MCP server for framework and library documentation lookup. Use 'resolve-library-id' to find a library, then 'query-docs' to fetch its current documentation. ALWAYS use this BEFORE configuring any framework, ORM, bundler, or build tool to avoid version-specific configuration errors.",
+            "command": "context7-mcp",
+            "args": []
+        },
+        "google_drive": {
+            "type": "stdio",
+            "disabled": false,
+            "description": "Google Drive MCP server for file management",
+            "command": "google-drive-mcp",
+            "args": [],
+            "env": {
+                "GOOGLE_CHAT_TOKEN": "§secret(GOOGLE_CHAT_TOKEN)"
+            }
+        },
+        "google-chat": {
+            "type": "stdio",
+            "disabled": false,
+            "description": "Google Chat MCP server for messages and spaces. CRITICAL: To search or read Google Chat content, ALWAYS use these MCP tools (google_chat_search_all_spaces, google_chat_search_messages, google_chat_list_messages). NEVER use terminal grep/cat on local google_chat/ files — they are stale exports and will produce empty or hallucinated results.",
+            "command": "/opt/venv-agix/bin/python3",
+            "args": [
+                "-m",
+                "python.helpers.mcp.google_chat_mcp_server"
+            ],
+            "env": {
+                "PYTHONPATH": "/agix",
+                "GOOGLE_CHAT_TOKEN": "§§secret(GOOGLE_CHAT_TOKEN)"
+            }
+        },
+        "mcp_server": {
+            "type": "stdio",
+            "disabled": false,
+            "description": "Internal AGIX MCP Tool Server",
+            "command": "/opt/venv-agix/bin/python3",
+            "args": [
+                "-m",
+                "python.helpers.mcp_server"
+            ],
+            "env": {
+                "PYTHONPATH": "/agix"
+            }
+        },
+        "tavily-mcp": {
+            "type": "stdio",
+            "disabled": false,
+            "description": "Tavily MCP server for web search, crawl, extract, and research. Use for comprehensive web research, content extraction from URLs, and site mapping. Preferred fallback when Perplexity quota is exceeded.",
+            "command": "tavily-mcp",
+            "args": [],
+            "env": {
+                "TAVILY_API_KEY": "§§secret(TAVILY_API_KEY)"
+            }
+        },
+        "alphaxiv": {
+            "disabled": false,
+            "description": "alphaXiv MCP server for academic paper search, embedding similarity, full-text search, and research analysis",
+            "url": "https://api.alphaxiv.org/mcp/v1"
+        }
+    }
+}

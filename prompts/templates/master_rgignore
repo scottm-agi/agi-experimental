@@ -1,0 +1,35 @@
+# .rgignore — Master template for agent-scaffolded projects
+# Prevents wasteful scanning of build artifacts and dependencies
+# during ripgrep/ast-grep operations inside agent code execution.
+
+# Node.js
+node_modules/
+.next/
+dist/
+build/
+.turbo/
+coverage/
+.nyc_output/
+
+# Python
+__pycache__/
+*.pyc
+.venv/
+venv/
+*.egg-info/
+
+# Build artifacts
+*.min.js
+*.min.css
+*.map
+
+# Version control
+.git/
+
+# IDE
+.idea/
+.vscode/
+
+# OS
+.DS_Store
+Thumbs.db
